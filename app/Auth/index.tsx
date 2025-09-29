@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeTab: {
-    backgroundColor: "#0056b3", // Active tab color
+    backgroundColor: "#8FD3F7", // Active tab color
     width: 40,
   },
 });

@@ -28,43 +28,48 @@ const SignIn = () => {
     }
 
     setLoading(true);
+    router.push("/tabs/Home");
+    setLoading(false);
 
-    try {
-      const response = await axios.post(
-        "https://apostle.onrender.com/api/auth/login",
-        {
-          email,
-          password,
-        }
-      );
 
-      if (response.status === 200) {
-        await AsyncStorage.setItem("userName", response.data.data.name);
-        await AsyncStorage.setItem("userEmail", response.data.data.email);
-        await AsyncStorage.setItem("userId", response.data.data._id);
-        Alert.alert("Login Successful", "Welcome back!");
-        router.push("/tabs/Home");
-      }
-    } catch (error: any) {
-      Alert.alert(
-        "Login Failed",
-        error.response?.data?.message ||
-          "Something went wrong. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+
+    // try {
+    //   const response = await axios.post(
+    //     "https://apostle.onrender.com/api/auth/login",
+    //     {
+    //       email,
+    //       password,
+    //     }
+    //   );
+
+    //   if (response.status === 200) {
+    //     await AsyncStorage.setItem("userName", response.data.data.name);
+    //     await AsyncStorage.setItem("userEmail", response.data.data.email);
+    //     await AsyncStorage.setItem("userId", response.data.data._id);
+    //     Alert.alert("Login Successful", "Welcome back!");
+    //     router.push("/tabs/Home");
+    //   }
+    // } catch (error: any) {
+    //   Alert.alert(
+    //     "Login Failed",
+    //     error.response?.data?.message ||
+    //       "Something went wrong. Please try again."
+    //   );
+    //   console.error(error);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   return (
     <View style={tw`flex-1 bg-white p-4 pt-[10%]`}>
       {/* Back Button */}
-      <TouchableOpacity onPress={() => router.back()} style={tw`mb-6`}>
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
+      {/* <TouchableOpacity onPress={() => router.back()} style={tw`mb-5 mt-5`}>
+        <Ionicons name="arrow-back" size={26} color="black" />
+      </TouchableOpacity> */}
 
       {/* Welcome Back Header */}
-      <Text style={tw`text-3xl font-bold mb-6`}>Welcome Back</Text>
+      <Text style={tw`text-6xl text-[#373737] leading-normal font-bold mb-6 mt-7`}>Welcome Back</Text>
 
       {/* Input Fields */}
       <Input
@@ -81,7 +86,7 @@ const SignIn = () => {
 
       {/* Login Button */}
       <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#3EB3F2] justify-center mt-12`}
+        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
         onPress={handleLogin}
       >
         <Text style={tw`text-white text-lg`}>Sign In</Text>
@@ -89,13 +94,13 @@ const SignIn = () => {
 
       {/* Sign Up & Forgot Password Links */}
       <View style={tw`w-full flex flex-row items-center justify-between mt-4`}>
-        <Link href={"/Auth/Signup"} style={tw`text-blue-500 underline mt-4`}>
+        <Link href={"/Auth/Signup"} style={tw`text-[#373737] underline mt-4`}>
           Sign Up
         </Link>
 
         <Link
           href={"/Auth/Forgotpassword"}
-          style={tw`text-blue-500 underline mt-4`}
+          style={tw`text-[#373737] underline mt-4`}
         >
           Forget Password?
         </Link>

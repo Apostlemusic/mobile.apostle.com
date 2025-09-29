@@ -49,7 +49,7 @@ const SignUp = () => {
   return (
     <View style={tw`flex-1 bg-white p-4 pt-[20%]`}>
       {/* Create Account Header */}
-      <Text style={tw`text-3xl font-bold mb-6`}>Create Account</Text>
+      <Text style={tw`text-6xl leading-normal text-[#373737] font-bold mb-6`}>Create Account</Text>
 
       {/* Input Fields */}
       <Input label="Name" value={name} onChangeText={(text) => setName(text)} />
@@ -67,7 +67,7 @@ const SignUp = () => {
 
       {/* Sign Up Button */}
       <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#3EB3F2] justify-center mt-12`}
+        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
         onPress={handleSignUp}
       >
         <Text style={tw`text-white text-lg`}>Sign In</Text>
@@ -75,7 +75,7 @@ const SignUp = () => {
 
       {/* Navigate to SignIn */}
       <Pressable onPress={() => router.push("/Auth/Signin")}>
-        <Text style={tw`text-blue-500 underline mt-4`}>Sign In</Text>
+        <Text style={tw`text-[#000000] underline mt-4`}>Sign Up</Text>
       </Pressable>
     </View>
   );

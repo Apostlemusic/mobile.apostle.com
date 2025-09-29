@@ -12,7 +12,7 @@ const ArrowButton = ({ direction, onPress, disabled }: {direction: any, onPress:
       activeOpacity={0.7}
       disabled={disabled} // Disable the button if needed
     >
-      <AntDesign name={icon} size={24} color="#fff" />
+      <AntDesign name={icon} size={26} color={disabled ? '#264252' : '#fff'} />
     </TouchableOpacity>
   );
 };
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007bff', // Blue color
+    backgroundColor: '#264252', // Blue color
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 2, // Shadow for Android
@@ -32,6 +32,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   disabledButton: {
+    backgroundColor:'transparent', // Make background transparent when disabled
+    borderColor: '#264252', // Keep the border color
+    borderWidth: 1, // Add border when disabled
+    color: '#264252', // Change icon color when disabled
     opacity: 0.5, // Reduce opacity when disabled
   },
 });

@@ -41,13 +41,13 @@ const ForgotPassword = () => {
   return (
     <View style={tw`flex-1 bg-white p-4 pt-[10%]`}>
       {/* Back Button */}
-      <TouchableOpacity onPress={() => router.back()} style={tw`mb-6`}>
+      <TouchableOpacity onPress={() => router.back()} style={tw`my-5`}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
       {/* Forgot Password Header */}
-      <Text style={tw`text-2xl font-bold mb-4`}>Forgot Password</Text>
-      <Text style={tw` text-base mb-8`}>
+      <Text style={tw`text-2xl font-bold mb-4 text-center`}>Forgot Password</Text>
+      <Text style={tw` text-base mb-8 text-center`}>
         Please enter your registered email address to receive a verification
         code.
       </Text>
@@ -57,10 +57,10 @@ const ForgotPassword = () => {
 
       {/* Submit Button */}
       <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#3EB3F2] justify-center mt-12`}
+        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
         onPress={handleForgotPassword}
       >
-        <Text style={tw`text-white text-lg`}>Sign In</Text>
+        <Text style={tw`text-white text-lg`}>Continue</Text>
       </TouchableOpacity>
     </View>
   );

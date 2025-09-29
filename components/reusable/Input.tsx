@@ -44,7 +44,7 @@ const Input: React.FC<InputProps> = ({
 
   const borderStyle = borderColor.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#D1D5DB', '#3B82F6'], // Gray to Blue transition
+    outputRange: ['#808080', '#3B82F6'], // Gray to Blue transition
   });
 
   return (
@@ -52,7 +52,7 @@ const Input: React.FC<InputProps> = ({
       <Animated.View
         style={[
           tw`flex-row items-center border-b p-2 mt-3 rounded-lg`,
-          { borderColor: borderStyle,},
+          { borderColor: borderStyle, },
         ]}
       >
         <TextInput

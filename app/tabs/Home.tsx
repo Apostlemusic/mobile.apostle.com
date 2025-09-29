@@ -16,6 +16,7 @@ import axios from "axios";
 import NavigationBar from "@/components/reusable/Navbar";
 import { SongProvider } from "@/contexts/SongContext";
 import MiniPlayer from "@/components/musicPlayer/Miniplayer";
+import MusicHome from "@/components/carouselSlide/Carousel";
 
 
 const Index = () => {
@@ -36,9 +37,9 @@ const Index = () => {
       ) : (
         <SongProvider>
           {/* Topbar and Main Content */}
-          <Topbar />
+          {/* <Topbar /> */}
           <ScrollView style={tw`bg-gray-50 h-full w-full mb-[160px]`}>
-            <CarouselComponent />
+            <MusicHome/>
             <GetRecentlyPlays />
             <GetQuickPicks text="Quick Picks" />
             <GetPodcasts />

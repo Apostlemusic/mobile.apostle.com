@@ -6,6 +6,7 @@ import {
   Alert,
   Button,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,18 +22,15 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setLoading(true);
     if (!email || !password) {
       Alert.alert("Validation Error", "Please fill in all fields.");
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     router.push("/tabs/Home");
-    setLoading(false);
-
-
-
+    setLoading(false)
     // try {
     //   const response = await axios.post(
     //     "https://apostle.onrender.com/api/auth/login",
@@ -53,7 +51,7 @@ const SignIn = () => {
     //   Alert.alert(
     //     "Login Failed",
     //     error.response?.data?.message ||
-    //       "Something went wrong. Please try again."
+    //     "Something went wrong. Please try again."
     //   );
     //   console.error(error);
     // } finally {
@@ -86,10 +84,14 @@ const SignIn = () => {
 
       {/* Login Button */}
       <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
+        style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${loading ? "bg-gray-500" : "bg-[#264252]"}`}
         onPress={handleLogin}
       >
-        <Text style={tw`text-white text-lg`}>Sign In</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Text style={tw`text-white text-lg`}>Sign In</Text>
+        )}
       </TouchableOpacity>
 
       {/* Sign Up & Forgot Password Links */}

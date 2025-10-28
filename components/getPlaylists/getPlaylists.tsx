@@ -297,15 +297,6 @@ export const GetTrending = ({ text }: { text: string }) => {
   );
 };
 
-const fallbackImages = [
-  require("@/assets/images/category-1.png"),
-  require("@/assets/images/category-2.png"),
-  require("@/assets/images/category-3.png"),
-  require("@/assets/images/category-4.png"),
-  require("@/assets/images/category-5.png"),
-  require("@/assets/images/category-6.png"),
-  // Add more URLs as needed
-];
 
 // Categories Component
 export const GetCategories = () => {

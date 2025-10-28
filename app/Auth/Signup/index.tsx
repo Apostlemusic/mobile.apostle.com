@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert, Pressable } from "react-native";
+import { View, Text, TouchableOpacity, Alert, Pressable, ActivityIndicator } from "react-native";
 import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
 import Input from "@/components/reusable/Input";
@@ -20,7 +20,6 @@ const SignUp = () => {
     }
 
     setLoading(true);
-
     try {
       const response = await axios.post(
         "https://apostle.onrender.com/api/auth/register",
@@ -39,7 +38,7 @@ const SignUp = () => {
       Alert.alert(
         "Sign Up Failed",
         error.response?.data?.message ||
-          "Something went wrong. Please try again."
+        "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -67,10 +66,14 @@ const SignUp = () => {
 
       {/* Sign Up Button */}
       <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
+        style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${loading ? "bg-gray-500" : "bg-[#264252]"}`}
         onPress={handleSignUp}
       >
-        <Text style={tw`text-white text-lg`}>Sign In</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Text style={tw`text-white text-lg`}>Sign Up</Text>
+        )}
       </TouchableOpacity>
 
       {/* Navigate to SignIn */}

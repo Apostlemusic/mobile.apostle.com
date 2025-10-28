@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ImageBackground,
   FlatList,
+  Platform,
 } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 import tw from "twrnc";
@@ -16,7 +17,7 @@ const { width: screenWidth } = Dimensions.get("window");
 // Carousel Data
 const carouselData = [
   {
-    image: require("../../assets/images/papa.png"),
+    image: require("../../assets/images/album-cover.jpg"),
     title: "He Is Amazing",
     artist: "Samuel Agboyega",
   },
@@ -54,8 +55,8 @@ const renderCarouselItem = ({ item }: { item: any }) => (
       imageStyle={{ borderBottomLeftRadius: 50, borderTopRightRadius: 50 }}
     >
       {/* Artist & Title */}
-      <Text style={tw`text-white text-xs mb-1 w-1/2`}>{item.artist}</Text>
-      <Text style={tw`text-black text-base font-bold absolute bottom-3 right-2 w-1/2 text-center`}>{item.title}</Text>
+      <Text style={tw`text-white text-base font-semibold mb-1 w-1/2`}>{item.artist}</Text>
+      <Text style={tw`text-black text-lg font-semibold absolute bottom-3 right-2 w-1/2 text-center`}>{item.title}</Text>
     </ImageBackground>
   </View>
 );
@@ -63,7 +64,7 @@ const renderCarouselItem = ({ item }: { item: any }) => (
 // Render New Release Card
 const renderNewRelease = ({ item }: { item: any }) => (
   <View style={tw`mr-2`}>
-    <View style={tw`bg-gray-100 rounded-2xl w-[300px] p-3 flex-row items-center gap-4`}>
+    <View style={tw`bg-[#394F5C94] rounded-2xl w-[300px] p-3 flex-row items-center gap-4`}>
       <Image
         source={item.image}
         style={tw`w-22 h-24 rounded-xl mb-2`}
@@ -71,10 +72,10 @@ const renderNewRelease = ({ item }: { item: any }) => (
       />
       <View>
         <Text style={tw`text-base font-semibold`}>Title: {item.title}</Text>
-        <Text style={tw`text-sm text-gray-600`}>Artist: {item.artist}</Text>
+        <Text style={tw`text-sm text-[#000]`}>Artist: {item.artist}</Text>
         <View style={tw`flex-row gap-2 mt-2 justify-between items-center`}>
-          <Text style={tw`text-xs text-gray-500`}>Type: {item.type}</Text>
-          <Text style={tw`text-xs text-gray-500`}>
+          <Text style={tw`text-xs text-[#000]`}>Type: {item.type}</Text>
+          <Text style={tw`text-xs text-[#000]`}>
             Date: {item.releaseDate}
           </Text>
         </View>
@@ -87,7 +88,7 @@ const MusicHome = () => {
   return (
     <View style={tw`flex-1 justify-center`}>
       {/* Jump Back In */}
-      <View style={tw`px-4 mt-10 flex items-center justify-center bg-[#2C3E50] rounded-b-[85px] relative h-[330px]`}>
+      <View style={tw`px-4 ${Platform.OS === "ios" ? "mt-0" : "mt-10"} flex items-center justify-center bg-[#2C3E50] rounded-b-[85px] relative h-[330px]`}>
         <Text style={tw`text-xl font-extrabold text-white rounded-xl px-3 mt-3 w-full`}>
           Jump Back In
         </Text>

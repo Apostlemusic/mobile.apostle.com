@@ -1,188 +1,132 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  Image,
-  Platform,
-  StatusBar,
-  Pressable,
-  Alert,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Switch } from "react-native";
+import Slider from "@react-native-community/slider";
 import tw from "twrnc";
-import { router } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
-interface SettingsItemProps {
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-}
+export default function SettingsScreen() {
+  const router = useRouter();
 
-const SettingsItem: React.FC<SettingsItemProps> = ({
-  icon,
-  title,
-  subtitle,
-  onPress,
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={tw`flex-row items-center px-4 py-4 border-b border-gray-100`}
-  >
-    <View style={tw`w-8 h-8 justify-center items-center mr-3`}>{icon}</View>
-    <View>
-      <Text style={tw`text-base font-medium text-gray-900`}>{title}</Text>
-      <Text style={tw`text-sm text-gray-500`}>{subtitle}</Text>
-    </View>
-  </TouchableOpacity>
-);
+  const [audioQuality, setAudioQuality] = useState("Automatic");
+  const [mixValue, setMixValue] = useState(10);
+  const [gapless, setGapless] = useState(true);
+  const [volumeLeveler, setVolumeLeveler] = useState(false);
 
-const SettingsScreen: React.FC = () => {
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const qualityOptions = ["Automatic", "Very High", "High", "Low"];
 
-  // Fetch user details from AsyncStorage
-  useEffect(() => {
-    const getUserDetails = async () => {
-      try {
-        const name = await AsyncStorage.getItem("userName");
-        const email = await AsyncStorage.getItem("userEmail");
-        const id = await AsyncStorage.getItem("userId");
-
-        if (name && email && id) {
-          setUserName(name);
-          setUserEmail(email);
-          setUserId(id);
-        } else {
-          Alert.alert("No user data found", "Please log in first.");
-          router.push("/Auth/Signin");
-        }
-      } catch (error) {
-        Alert.alert("Error", "Failed to retrieve user data.");
-      }
-    };
-
-    getUserDetails();
-  }, []);
-
-  const handleItemPress = (section: string) => {
-    console.log(`Navigating to ${section}`);
-    // Add navigation logic for each section here
-    // router.push(`/Pages/${section}`);
-  };
-
+  // -----------------------------
+  // 🔐 Handle Logout Function
+  // -----------------------------
   const handleLogout = async () => {
     try {
-      const res = await axios.post(
-        "https://apostle.onrender.com/api/auth/logout"
-      );
-      // console.log("Logout response:", res.data);
-      // Optionally, clear AsyncStorage after logging out
+      const res = await axios.post("https://apostle.onrender.com/api/auth/logout");
+      console.log("Logout response:", res.data);
+
+      // Clear stored tokens/user data
       await AsyncStorage.clear();
-      router.push("/Auth/Signin"); // Navigate to login screen after logout
+
+      // Navigate to login screen (adjust route as needed)
+      router.push("/Auth/Signin");
     } catch (error) {
       console.log("Error during logout:", error);
     }
   };
 
   return (
-    <>
-      <Pressable style={tw`flex-row items-center gap-1 px-2`}>
-        <Ionicons name="chevron-back" size={25} color="#4B5563" />
-        <Text
-          style={tw`text-[17px] font-medium text-[#4B5563]`}
-          onPress={() => router.back()}
+    <View style={tw`flex-1 bg-gray-50`}>
+      {/* Header */}
+      <View style={tw`flex-row justify-between items-center px-4 py-5 border-b border-gray-200`}>
+        <View style={tw`flex-row items-center`}>
+          <View style={tw`w-12 h-12 rounded-full bg-gray-200 justify-center items-center mr-3`}>
+            <Text style={tw`text-xl`}>👤</Text>
+          </View>
+          <Text style={tw`text-xl font-bold`}>Bukoye</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={tw`bg-gray-400 rounded-md px-4 py-2`}
         >
-          Back
+          <Text style={tw`text-white font-semibold`}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Audio streaming quality */}
+      <View style={tw`px-5 py-6 border-b border-gray-200`}>
+        <Text style={tw`text-lg font-bold mb-1`}>Audio streaming quality</Text>
+        <Text style={tw`text-gray-500 mb-4`}>
+          Choose the best audio quality that best supports you
         </Text>
-      </Pressable>
 
-      <SafeAreaView
-        style={tw`flex-1 bg-white ${
-          Platform.OS === "android" ? `pt-[${StatusBar.currentHeight}px]` : ""
-        }`}
-      >
-        {/* Profile Section */}
-        <TouchableOpacity
-          style={tw`flex-row items-center px-4 py-3 border-b border-gray-100`}
-          onPress={() => handleItemPress("profile")}
-        >
-          <Image
-            source={require("../../assets/images/Apostle-Logo-sm.png")} // Replace with your avatar image path
-            style={tw`w-12 h-12 rounded-full mr-3`}
+        {qualityOptions.map((option) => (
+          <TouchableOpacity
+            key={option}
+            style={tw`flex-row justify-between items-center py-2 `}
+            onPress={() => setAudioQuality(option)}
+          >
+            <Text style={tw`text-base`}>{option}</Text>
+            <View
+              style={tw`w-5 h-5 rounded-full border-2 flex justify-center items-center ${audioQuality === option ? "border-[#0C0932]" : "border-gray-400"}`}
+            >
+              {
+                audioQuality === option ? (
+                  <View style={tw`w-3 h-3 rounded-full bg-[#0C0932] m-[3px]`} />
+                ) : (
+                  null
+                )
+              }
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Mix Song */}
+      <View style={tw`px-5 py-6`}>
+        <Text style={tw`text-lg font-bold mb-1`}>Mix Song</Text>
+        <Text style={tw`text-gray-500 mb-4`}>
+          Mix the playing track and next track together for a smooth playback
+        </Text>
+
+        <View style={tw`flex-row justify-between items-center`}>
+          <Text style={tw`text-base`}>10s</Text>
+          <Slider
+            style={tw`flex-1 mx-3`}
+            minimumValue={10}
+            maximumValue={15}
+            value={mixValue}
+            minimumTrackTintColor="#0C0932"
+            maximumTrackTintColor="#e5e7eb"
+            thumbTintColor="#0C0932"
+            onValueChange={setMixValue}
           />
-          <View>
-            <Text style={tw`text-xl font-semibold text-gray-900`}>
-              {userName}
-            </Text>
-            <Text style={tw`text-sm text-gray-500`}>{userEmail}</Text>
-          </View>
-        </TouchableOpacity>
+          <Text style={tw`text-base`}>15s</Text>
+        </View>
 
-        {/* Settings Items */}
-        <SettingsItem
-          icon={<Ionicons name="settings-outline" size={24} color="#4B5563" />}
-          title="Settings & Privacy"
-          subtitle="Manage your account"
-          onPress={() => handleItemPress("settings")}
-        />
-
-        <SettingsItem
-          icon={<Ionicons name="document-outline" size={24} color="#4B5563" />}
-          title="Manage Content"
-          subtitle="Downloads, Uploads, Audio content"
-          onPress={() => handleItemPress("content")}
-        />
-
-        <SettingsItem
-          icon={
-            <Ionicons name="color-palette-outline" size={24} color="#4B5563" />
-          }
-          title="Personalisation"
-          subtitle="Customise your listening experience"
-          onPress={() => handleItemPress("personalization")}
-        />
-
-        <SettingsItem
-          icon={
-            <Ionicons
-              name="information-circle-outline"
-              size={24}
-              color="#4B5563"
+        {/* Toggles */}
+        <View style={tw`mt-8`}>
+          <View style={tw`flex-row justify-between items-center mb-5`}>
+            <Text style={tw`text-base font-semibold`}>Gapless Playback</Text>
+            <Switch
+              value={gapless}
+              onValueChange={setGapless}
+              trackColor={{ false: "#d1d5db", true: "#0C0932" }}
+              thumbColor={gapless ? "#fff" : "#9ca3af"}
             />
-          }
-          title="About"
-          subtitle="View Contributors and App Version"
-          onPress={() => handleItemPress("about")}
-        />
+          </View>
 
-        {/* Logout Section */}
-        <TouchableOpacity
-          onPress={handleLogout} // Invoke the handleLogout function
-          style={tw`flex-row items-center px-4 py-4 border-b border-gray-100`}
-        >
-          <View style={tw`w-8 h-8 justify-center items-center mr-3`}>
-            <AntDesign name="logout" size={24} color="#cc0202" />
+          <View style={tw`flex-row justify-between items-center`}>
+            <Text style={tw`text-base font-semibold`}>Volume Leveler</Text>
+            <Switch
+              value={volumeLeveler}
+              onValueChange={setVolumeLeveler}
+              trackColor={{ false: "#d1d5db", true: "#0C0932" }}
+              thumbColor={volumeLeveler ? "#fff" : "#9ca3af"}
+            />
           </View>
-          <View>
-            <Text style={tw`text-base font-medium text-[#cc0202]`}>Logout</Text>
-          </View>
-        </TouchableOpacity>
-      </SafeAreaView>
-    </>
+        </View>
+      </View>
+    </View>
   );
-};
-
-// Optional: Add navigation typing if you're using React Navigation
-interface SettingsScreenProps {
-  navigation?: any; // Replace 'any' with proper navigation type
 }
-
-// Export with navigation props if needed
-export default SettingsScreen as React.FC<SettingsScreenProps>;

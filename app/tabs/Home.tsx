@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable, Image } from "react-native";
+import { View, Text, ScrollView, Pressable, Image, Platform } from "react-native";
 import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
 import { SkeletonLoader } from "@/components/reusable/Skeleton";
@@ -17,6 +17,7 @@ import NavigationBar from "@/components/reusable/Navbar";
 import { SongProvider } from "@/contexts/SongContext";
 import MiniPlayer from "@/components/musicPlayer/Miniplayer";
 import MusicHome from "@/components/carouselSlide/Carousel";
+import MoreForYou from "@/components/reusable/MoreForYou";
 
 
 const Index = () => {
@@ -36,21 +37,10 @@ const Index = () => {
         <SkeletonLoader />
       ) : (
         <SongProvider>
-          {/* Topbar and Main Content */}
-          {/* <Topbar /> */}
-          <ScrollView style={tw`bg-gray-50 h-full w-full mb-[160px]`}>
-            <MusicHome/>
-            <GetRecentlyPlays />
-            <GetQuickPicks text="Quick Picks" />
-            <GetPodcasts />
-            <GetNewReleases />
-            <GetTrending text="Trending" />
+          <ScrollView style={tw`bg-gray-50 h-full w-full ${Platform.OS === "ios" ? "mb-[100px]" : "mb-[135px]"}>`}>
+            <MusicHome />
+            <MoreForYou />
           </ScrollView>
-
-          {/* MiniPlayer */}
-          {/* <MiniPlayer  /> */}
-
-          {/* <NavigationBar /> */}
         </SongProvider>
       )}
     </>

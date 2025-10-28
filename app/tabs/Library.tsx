@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  TextInput,
-  ActivityIndicator,
+  Text,
   FlatList,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
 } from "react-native";
 import tw from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -101,7 +97,7 @@ const PlaylistManager: React.FC = () => {
 
   return (
     <>
-      <Topbar />
+      {/* <Topbar /> */}
       <FlatList
         data={activeTab === "playlists" ? filteredPlaylists : filteredDownloads}
         renderItem={({ item }) => (
@@ -111,20 +107,11 @@ const PlaylistManager: React.FC = () => {
         ListHeaderComponent={
           <>
             <View style={tw`flex-row items-center mx-4 my-4`}>
-              <TextInput
-                style={tw`flex-1 px-4 py-3 bg-white rounded-xl text-base mr-2`}
-                placeholder="Search playlists..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              <TouchableOpacity
-                style={tw`flex items-center justify-center bg-[#007AFF] p-2 rounded-lg`}
-                onPress={handleAddPlaylistButton}
-              >
-                <Ionicons name="add" size={28} color="#FFFFFF" />
-              </TouchableOpacity>
+             <Text style={tw`text-[30px] font-semibold`}>
+              Your Library
+             </Text>
             </View>
-            <View style={tw`flex-row px-4 mb-4`}>
+            <View style={tw`flex-row px-3 mb-4`}>
               <Tab
                 isActive={activeTab === "playlists"}
                 label="Playlists"
@@ -145,11 +132,6 @@ const PlaylistManager: React.FC = () => {
             <EmptyDownloads />
           )
         }
-        // ListFooterComponent={
-        //   isLoading && (
-        //     <ActivityIndicator size="large" color="#0000ff" style={tw`mt-10`} />
-        //   )
-        // }
         contentContainerStyle={tw`flex-grow pb-[50%]`} // Ensures proper layout and padding
         showsVerticalScrollIndicator={false} // Optional: Hides the vertical scrollbar
       />

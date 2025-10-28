@@ -1,136 +1,108 @@
-import axios from "axios";
-import {
-  GetCategories,
-  GetQuickPicks,
-  GetTrending,
-} from "@/components/getPlaylists/getPlaylists";
-import NavigationBar from "@/components/reusable/Navbar";
-import { SearchSkeleton } from "@/components/reusable/Skeleton";
-import Topbar from "@/components/reusable/Topbar";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-  FlatList,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
   TextInput,
   View,
-  Image,
 } from "react-native";
+import axios from "axios";
 import tw from "twrnc";
+
+// Components
+import { SearchSkeleton } from "@/components/reusable/Skeleton";
+import ArtistProfileCard from "@/components/reusable/ArtistSlide";
+import TopHitsThisWeek from "@/components/reusable/HotAlbums";
+import Search from "@/components/icon/Search";
+
+// Context
 import { SongProvider } from "@/contexts/SongContext";
-import MiniPlayer from "@/components/musicPlayer/Miniplayer";
+import GenresSection from "@/components/reusable/GenreGrid";
 
 const Index = () => {
+  // State management
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]); // State to store search results
-  const [isSearching, setIsSearching] = useState(false); // To handle loading state for search results
+  const [results, setResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
+  // Initial loading effect
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500); // 0.5 seconds
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
 
-  // Fetch data based on search query using axios
+  // Search effect
   useEffect(() => {
     if (search === "") {
-      setResults([]); // Clear results if search is empty
+      setResults([]);
       return;
     }
 
-    setIsSearching(true);
-    axios
-      .get(`https://apostle.onrender.com/api/song/getSongWithQuery/${search}`)
-      .then((response) => {
-        setResults(response.data.data); // Set fetched data
-        setIsSearching(false);
-      })
-      .catch((error) => {
+    const fetchSearchResults = async () => {
+      setIsSearching(true);
+      try {
+        const response = await axios.get(
+          `https://apostle.onrender.com/api/song/getSongWithQuery/${search}`
+        );
+        setResults(response.data.data);
+      } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
         setIsSearching(false);
-      });
+      }
+    };
+
+    fetchSearchResults();
   }, [search]);
 
+  // Loading state
+  if (isLoading) {
+    return <SearchSkeleton />;
+  }
+
   return (
-    <>
-      {isLoading ? (
-        <SearchSkeleton />
-      ) : (
-        <SongProvider>
-          {/* Logo and Avatar Header */}
-          <KeyboardAvoidingView
-            style={{ flex: 1, marginBottom: 160 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
-            <Topbar />
-            <View
-              style={tw`flex-row items-center w-auto bg-white rounded-lg p-3 py-2 shadow-md mx-4 mb-2`}
-            >
-              <MaterialIcons
-                name="search"
-                size={24}
-                color="black"
-                style={tw`mr-2`}
-              />
-              <TextInput
-                placeholder="Albums, Songs, Podcasts, Artists ..."
-                placeholderTextColor="gray"
-                style={tw`text-base flex-1`}
-                value={search}
-                onChangeText={setSearch} // Corrected: updates state with text
-              />
-            </View>
-
-            {search === "" ? (
-              <ScrollView style={tw`bg-gray-50 h-full w-full`}>
-
-                {/* Categories section */}
-                <View style={tw`w-[98%]`}>
-                  <Text style={tw`text-lg font-bold mb-3 px-4`}>
-                    Browse all
-                  </Text>
-                  <GetCategories />
+    <SongProvider>
+      <KeyboardAvoidingView
+        style={tw`flex-1 mb-26`}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView>
+          {/* Search Header Section */}
+          <View style={tw`relative`}>
+            <View style={tw`w-full h-[420px] justify-end`}>
+              <View style={tw`absolute top-0 w-full z-10`}>
+                {/* Search Bar */}
+                <View
+                  style={tw`flex-row items-center bg-[#F9F9F9D4] rounded-xl p-3 shadow-md mx-4 mb-5 border border-[#26425299]`}
+                >
+                  <TextInput
+                    placeholder="Search keywords"
+                    placeholderTextColor="gray"
+                    style={tw`text-base flex-1`}
+                    value={search}
+                    onChangeText={setSearch}
+                  />
+                  <Search />
                 </View>
-              </ScrollView>
-            ) : (
-              <FlatList
-                data={results}
-                renderItem={({ item }: any) => (
-                  <View
-                    style={tw`flex flex-row border-b border-gray-100 p-3 px-6 mb-2 mt-3`}
-                  >
-                    {/* Track Image */}
-                    <Image
-                      source={{ uri: item.trackImg }}
-                      style={tw`w-14 h-14 rounded-lg mb-3`}
-                    />
-                    <View style={tw`ml-2`}>
-                      <Text style={tw`font-bold text-lg`}>{item.title}</Text>
-                      <Text style={tw`text-sm text-gray-600`}>
-                        {item.author}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-                keyExtractor={(item: any) => item.trackId} // Using trackId as unique key
-                ListHeaderComponent={
-                  isSearching ? <Text>Loading...</Text> : null
-                }
-              />
-            )}
-          </KeyboardAvoidingView>
-          {/* MiniPlayer */}
+              </View>
+              <ArtistProfileCard />
+            </View>
+          </View>
 
-          {/* <NavigationBar /> */}
-        </SongProvider>
-      )}
-    </>
+          {/* Main Content */}
+          <View>
+            <TopHitsThisWeek />
+
+            <GenresSection />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SongProvider>
   );
 };
 

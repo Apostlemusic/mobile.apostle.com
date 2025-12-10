@@ -37,12 +37,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": "0486a071-8f82-49a8-ac23-cf089b554cf2"
+        "projectId": "abe3940d-e3dd-4a0a-a716-7cd04e92d3a2"
       },
       "router": {
         "origin": false
       }
     },
-    "owner": "apostleapp"
+    "owner": "steph4n"
   }
 }

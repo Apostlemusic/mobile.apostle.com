@@ -4,63 +4,48 @@ import { StyleSheet, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import tailwind from "twrnc";
+import { usePlayer } from "../player/PlayerContext";
 
 interface ControlsProps {
-  isPlaying: boolean;
-  handlePlayPause: () => void;
-  handleNext: () => void;
-  handlePrev: () => void;
-  isShuffle: boolean;
-  toggleShuffle: () => void;
-  isRepeat: boolean;
-  toggleRepeat: () => void;
   isDarkTheme: boolean;
 }
 
-const Controls: React.FC<ControlsProps> = ({
-  isPlaying,
-  handlePlayPause,
-  handleNext,
-  handlePrev,
-  toggleShuffle,
-  isShuffle,
-  toggleRepeat,
-  isRepeat,
-  isDarkTheme,
-}) => {
+const Controls: React.FC<ControlsProps> = ({ isDarkTheme }) => {
+  const { isPlaying, playPauseToggle, next, previous } = usePlayer();
+
   return (
     <View style={tailwind`flex flex-row items-center justify-between w-11/12`}>
       <View style={styles.extraControls}>
-        <TouchableOpacity onPress={toggleShuffle}>
+        <TouchableOpacity onPress={() => {}}>
           <Ionicons
             name="shuffle-outline"
             size={30}
-            color={isShuffle ? "#1DB954" : isDarkTheme ? "#fff" : "#fff"}
+            color="#fff"
           />
         </TouchableOpacity>
       </View>
       <View style={styles.controls}>
-        <TouchableOpacity onPress={handlePrev}>
+        <TouchableOpacity onPress={previous}>
           <AntDesign name="stepbackward" size={30} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handlePlayPause}>
+        <TouchableOpacity onPress={playPauseToggle}>
           <Ionicons
             name={isPlaying ? "pause-circle-outline" : "play-circle-outline"}
             size={50}
             color={isDarkTheme ? "#fff" : "#fff"}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleNext}>
+        <TouchableOpacity onPress={next}>
           <AntDesign name="stepforward" size={30} color="white" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.extraControls}>
-        <TouchableOpacity onPress={toggleRepeat}>
+        <TouchableOpacity onPress={() => {}}>
           <Ionicons
             name="repeat-outline"
             size={30}
-            color={isRepeat ? "#1DB954" : "#fff"}
+            color="#fff"
           />
         </TouchableOpacity>
       </View>

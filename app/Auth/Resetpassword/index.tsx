@@ -90,14 +90,14 @@ const ResetPassword = () => {
 
       {/* Submit Button */}
       <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#3EB3F2] justify-center mt-12`}
+        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
         onPress={handleResetPassword}
       >
-        <Text style={tw`text-white text-lg`}>Sign In</Text>
+        <Text style={tw`text-white text-lg`}>Reset Password</Text>
       </TouchableOpacity>
 
       {/* Sign In Link */}
-      <View style={tw`w-full flex flex-row items-center justify-between mt-4`}>
+      <View style={tw`w-full flex flex-row items-center justify-between mt-4 `}>
         <Link href="/Auth/Signin" style={tw`text-blue-500 underline mt-4`}>
           Sign In
         </Link>

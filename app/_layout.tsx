@@ -1,7 +1,16 @@
-import { Slot } from "expo-router";
+import React from "react";
+import { Stack } from "expo-router";
+import { PlayerProvider } from "../components/player/PlayerContext";
+import TrackPlayer from "react-native-track-player";
 
-const Layout: React.FC = () => {
-  return <Slot />;
-};
+// Register the playback service
+TrackPlayer.registerPlaybackService(() => require('../services/trackPlayerService').playbackService);
 
-export default Layout;
+export default function RootLayout() {
+  // Remove duplicate setup; PlayerProvider will initialize as needed
+  return (
+    <PlayerProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </PlayerProvider>
+  );
+}

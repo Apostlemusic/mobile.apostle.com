@@ -30,14 +30,12 @@ const SignUp = () => {
         }
       );
 
-      if (response.status === 200) {
-        Alert.alert("Success", "Account created successfully!");
-        router.push("/Auth/Verify");
-      }
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/Auth/Verify");
     } catch (error: any) {
       Alert.alert(
         "Sign Up Failed",
-        error.response?.data?.message ||
+        error.response?.data?.data ||
         "Something went wrong. Please try again."
       );
     } finally {
@@ -78,7 +76,7 @@ const SignUp = () => {
 
       {/* Navigate to SignIn */}
       <Pressable onPress={() => router.push("/Auth/Signin")}>
-        <Text style={tw`text-[#000000] underline mt-4`}>Sign Up</Text>
+        <Text style={tw`text-[#000000] underline mt-4`}>Sign In</Text>
       </Pressable>
     </View>
   );

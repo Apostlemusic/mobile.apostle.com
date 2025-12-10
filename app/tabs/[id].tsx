@@ -86,8 +86,14 @@ const PlaylistPage = () => {
         setCurrentSound(null);
       }
       try {
+        // Use trackUrl for playback, fallback to previewUrl if missing
+        const playbackUrl = song.trackUrl || song.previewUrl;
+        if (!playbackUrl) {
+          console.warn('No trackUrl or previewUrl available for this song:', song);
+          return;
+        }
         const { sound } = await Audio.Sound.createAsync(
-          { uri: song.previewUrl },
+          { uri: playbackUrl },
           { shouldPlay: true }
         );
         setCurrentSound(sound);
@@ -188,13 +194,15 @@ const PlaylistPage = () => {
                   style={tw`flex-row items-center p-4 bg-white rounded-lg shadow-sm my-2`}
                 >
                   <Image
-                    source={{ uri: song.trackImg }}
+                    source={{ uri: song.trackImg || "https://via.placeholder.com/150" }}
                     style={tw`w-12 h-12 rounded-lg mr-3`}
                     resizeMode="cover"
                   />
                   <View style={tw`flex-1`}>
                     <Text style={tw`font-medium text-lg`}>{song.title}</Text>
+                   <Text style={tw`font-medium text-lg`}>{song.title || "Unknown Title"}</Text>
                     <Text style={tw`text-sm text-gray-600`}>{song.author}</Text>
+                   <Text style={tw`text-sm text-gray-600`}>{song.author || "Unknown Artist"}</Text>
                   </View>
                   <Ionicons
                     name={playingTrackId === song.trackId ? "pause" : "play"}
@@ -214,3 +222,4 @@ const PlaylistPage = () => {
 };
 
 export default PlaylistPage;
+

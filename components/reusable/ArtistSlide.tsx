@@ -1,8 +1,28 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, ImageBackground } from 'react-native';
 import tw from 'twrnc';
+import { usePlayer } from '../player/PlayerContext';
 
 const { width } = Dimensions.get('window');
+
+type Props = {
+  trackId: string;
+  title: string;
+  artist?: string;
+  artworkUrl?: string;
+};
+
+const ArtistSlide: React.FC<Props> = ({ trackId, title, artist, artworkUrl }) => {
+  const { playById } = usePlayer();
+
+  return (
+    <div className="artist-slide" onClick={() => playById(trackId)}>
+      <img src={artworkUrl} alt={title} />
+      <div>{title}</div>
+      <div>{artist}</div>
+    </div>
+  );
+};
 
 export default function ArtistProfileCard() {
     return (

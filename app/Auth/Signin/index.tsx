@@ -29,34 +29,34 @@ const SignIn = () => {
     }
 
     setLoading(true);
-    router.push("/tabs/Home");
-    setLoading(false)
-    // try {
-    //   const response = await axios.post(
-    //     "https://apostle.onrender.com/api/auth/login",
-    //     {
-    //       email,
-    //       password,
-    //     }
-    //   );
+    // router.push("/tabs/Home");
+    // setLoading(false)
+    try {
+      const response = await axios.post(
+        "https://apostle.onrender.com/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
 
-    //   if (response.status === 200) {
-    //     await AsyncStorage.setItem("userName", response.data.data.name);
-    //     await AsyncStorage.setItem("userEmail", response.data.data.email);
-    //     await AsyncStorage.setItem("userId", response.data.data._id);
-    //     Alert.alert("Login Successful", "Welcome back!");
-    //     router.push("/tabs/Home");
-    //   }
-    // } catch (error: any) {
-    //   Alert.alert(
-    //     "Login Failed",
-    //     error.response?.data?.message ||
-    //     "Something went wrong. Please try again."
-    //   );
-    //   console.error(error);
-    // } finally {
-    //   setLoading(false);
-    // }
+      if (response.status === 200) {
+        await AsyncStorage.setItem("userName", response.data.data.name);
+        await AsyncStorage.setItem("userEmail", response.data.data.email);
+        await AsyncStorage.setItem("userId", response.data.data._id);
+        Alert.alert("Login Successful", "Welcome back!");
+        router.push("/tabs/Home");
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Login Failed",
+        error.response?.data?.data ||
+        "Something went wrong. Please try again."
+      );
+      // console.error(error.response.data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

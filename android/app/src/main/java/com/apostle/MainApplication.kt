@@ -1,4 +1,4 @@
-package com.washwisee.apostle
+package com.apostle
 
 import android.app.Application
 import android.content.res.Configuration
@@ -14,6 +14,10 @@ import com.facebook.soloader.SoLoader
 
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 
 class MainApplication : Application(), ReactApplication {
 
@@ -26,7 +30,10 @@ class MainApplication : Application(), ReactApplication {
             return PackageList(this).packages
           }
 
-          override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
+          // Force using index.js as main entry so TrackPlayer service registration in index.js
+          // is available to headless JS contexts. Expo may regenerate the virtual metro entry,
+          // but using index.js keeps our manual registration consistent.
+          override fun getJSMainModuleName(): String = "index"
 
           override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
 
@@ -41,11 +48,29 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     SoLoader.init(this, false)
+    createPlaybackNotificationChannel()
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       load()
     }
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
+  }
+
+  private fun createPlaybackNotificationChannel() {
+    try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channelId = "track_player_channel"
+        val name = "Playback"
+        val descriptionText = "Playback controls"
+        val importance = NotificationManager.IMPORTANCE_LOW
+        val channel = NotificationChannel(channelId, name, importance)
+        channel.description = descriptionText
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+      }
+    } catch (e: Exception) {
+      // ignore errors creating channel
+    }
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {

@@ -14,6 +14,7 @@ import tw from "twrnc";
 import { useFetchSongs } from "@/hooks/useFetchSongs";
 import { useAudio } from "@/contexts/AudioContext";
 import MusicPlayer from "@/components/musicPlayer/MusicPlayer";
+import MusicPlayerModal from "@/components/musicPlayer/MusicPlayer";
 
 // Quick Picks
 export const GetQuickPicks = ({ text }: { text: any }) => {
@@ -38,11 +39,17 @@ export const GetQuickPicks = ({ text }: { text: any }) => {
           songs.map((song) => (
             <Pressable
               key={song.trackId}
-              onPress={() => playPauseSong(song)}
+              onPress={() => playPauseSong({
+                ...song,
+                previewUrl: song.previewUrl || '',
+                trackImg: song.trackImg || "https://via.placeholder.com/150",
+                title: song.title || "Unknown Title",
+                author: song.author || "Unknown Artist"
+              })}
               style={tw`flex-row items-center p-2 bg-white rounded-lg shadow-sm`}
             >
               <Image
-                source={{ uri: song.trackImg }}
+                source={{ uri: song.trackImg || "https://via.placeholder.com/150" }}
                 style={tw`w-12 h-12 rounded mr-3`}
                 resizeMode="cover"
               />
@@ -96,11 +103,17 @@ export const GetRecentlyPlays = () => {
           {songs.map((song) => (
             <TouchableOpacity
               key={song.trackId}
-              onPress={() => handleSongClick(song)}
+              onPress={() => handleSongClick({
+                ...song,
+                previewUrl: song.previewUrl || '',
+                trackImg: song.trackImg || "https://via.placeholder.com/150",
+                title: song.title || "Unknown Title",
+                author: song.author || "Unknown Artist"
+              })}
             >
               <View style={{ marginRight: 16 }}>
                 <Image
-                  source={{ uri: song.trackImg }}
+                  source={{ uri: song.trackImg || "https://via.placeholder.com/150" }}
                   style={{
                     width: 128,
                     height: 128,
@@ -125,7 +138,7 @@ export const GetRecentlyPlays = () => {
         </Text>
       )}
       {isDrawerOpen && (
-        <MusicPlayer closeDrawer={() => setIsDrawerOpen(false)} />
+  <MusicPlayerModal visible={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
       )}
     </View>
   );
@@ -156,7 +169,13 @@ export const GetPodcasts = () => {
           {songs.map((song) => (
             <TouchableOpacity
               key={song.trackId}
-              onPress={() => handleSongClick(song)}
+              onPress={() => handleSongClick({
+                ...song,
+                previewUrl: song.previewUrl || '',
+                trackImg: song.trackImg || "https://via.placeholder.com/150",
+                title: song.title || "Unknown Title",
+                author: song.author || "Unknown Artist"
+              })}
             >
               <View style={tw`mr-4`}>
                 <Image
@@ -183,7 +202,7 @@ export const GetPodcasts = () => {
       )}
 
       {isDrawerOpen && (
-        <MusicPlayer closeDrawer={() => setIsDrawerOpen(false)} />
+  <MusicPlayerModal visible={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
       )}
     </View>
   );
@@ -237,7 +256,7 @@ export const GetNewReleases = () => {
       )}
 
       {isDrawerOpen && (
-        <MusicPlayer closeDrawer={() => setIsDrawerOpen(false)} />
+  <MusicPlayerModal visible={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
       )}
     </View>
   );
@@ -291,7 +310,7 @@ export const GetTrending = ({ text }: { text: string }) => {
       )}
 
       {isDrawerOpen && (
-        <MusicPlayer closeDrawer={() => setIsDrawerOpen(false)} />
+  <MusicPlayerModal visible={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
       )}
     </View>
   );
@@ -316,6 +335,12 @@ export const GetCategories = () => {
         <ScrollView contentContainerStyle={styles.gridContainer}>
           {categories.map((category: any, index: number) => {
             const backgroundColor = "#e0e0e0";
+            const fallbackImages = [
+              "https://via.placeholder.com/150/0000FF/808080?Text=Category1",
+              "https://via.placeholder.com/150/FF0000/FFFFFF?Text=Category2",
+              "https://via.placeholder.com/150/00FF00/000000?Text=Category3",
+              "https://via.placeholder.com/150/FFFF00/000000?Text=Category4"
+            ];
             const imageUrl = category.imageUrl || fallbackImages[index % fallbackImages.length];
             return (
               <View

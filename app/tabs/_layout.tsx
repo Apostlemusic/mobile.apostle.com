@@ -11,6 +11,7 @@ import { Tabs, useRouter, usePathname } from "expo-router";
 import MiniPlayer from "@/components/musicPlayer/Miniplayer";
 import { SongProvider } from "@/contexts/SongContext";
 import { AudioProvider } from "@/contexts/AudioContext";
+import { PlayerProvider } from "@/components/player/PlayerContext";
 import tw from "twrnc";
 import AccountActive from "@/components/icon/AccountActive";
 import Account from "@/components/icon/Account";
@@ -37,44 +38,46 @@ const Layout = () => {
   return (
     <SongProvider>
       <AudioProvider>
-        <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "android" ? "padding" : "height"}
-            style={tw`flex-1`}
-          >
-            <Tabs
-              screenOptions={{
-                headerShown: false,
-                tabBarStyle: { display: "none" },
-              }}
+        <PlayerProvider>
+          <SafeAreaView style={tw`flex-1 bg-gray-100`}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "android" ? "padding" : "height"}
+              style={tw`flex-1`}
             >
-              <Tabs.Screen name="Home" />
-              <Tabs.Screen name="Search" />
-              <Tabs.Screen name="Library" />
-              <Tabs.Screen name="Profile" />
-            </Tabs>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-
-        <MiniPlayer />
-
-        {/* Custom Bottom Navigation */}
-        <View
-          style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
-        >
-          {Links.map((link, index) => {
-            const isActive = pathname === link.path;
-            return (
-              <TouchableOpacity
-                key={index}
-                style={tw`flex-row items-center px-5 py-1`}
-                onPress={() => router.push(link.path)}
+              <Tabs
+                screenOptions={{
+                  headerShown: false,
+                  tabBarStyle: { display: "none" },
+                }}
               >
-                {isActive ? link.activeIcon : link.inactiveIcon}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                <Tabs.Screen name="Home" />
+                <Tabs.Screen name="Search" />
+                <Tabs.Screen name="Library" />
+                <Tabs.Screen name="Profile" />
+              </Tabs>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+
+          <MiniPlayer />
+
+          {/* Custom Bottom Navigation */}
+          <View
+            style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
+          >
+            {Links.map((link, index) => {
+              const isActive = pathname === link.path;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={tw`flex-row items-center px-5 py-1`}
+                  onPress={() => router.push(link.path)}
+                >
+                  {isActive ? link.activeIcon : link.inactiveIcon}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </PlayerProvider>
       </AudioProvider>
     </SongProvider>
   );

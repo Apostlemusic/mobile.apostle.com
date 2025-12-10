@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from "react-native-linear-gradient";
 import tw from 'twrnc';
 
 const { width } = Dimensions.get('window');

@@ -3,11 +3,13 @@ import { Pressable, ActivityIndicator } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import axios from "axios";
 import tw from "twrnc";
+import { usePlayer } from "../player/PlayerContext";
 
 const LikeToggle = ({ trackId, initialLiked = false, onLikeChange }: any) => {
   const [isLiked, setIsLiked] = useState(initialLiked); // Manage like state
   const [loading, setLoading] = useState(false); // Manage loading state
   const [error, setError] = useState(null); // Manage errors
+  const { playById } = usePlayer();
 
   const handleLikeToggle = async () => {
     if (loading) return; // Prevent multiple API calls

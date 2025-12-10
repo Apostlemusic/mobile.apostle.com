@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import tw from 'twrnc';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from "react-native-linear-gradient";
+
 
 const albums = [
     {

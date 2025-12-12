@@ -3,150 +3,364 @@ import {
   View,
   Text,
   FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Modal,
+  TextInput,
 } from "react-native";
 import tw from "twrnc";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import Topbar from "@/components/reusable/Topbar";
-import NavigationBar from "@/components/reusable/Navbar";
-import Tab from "@/components/playlist/Tab";
-import PlaylistCard from "@/components/playlist/PlaylistCard";
-import AddPlaylistModal from "@/components/playlist/AddPlaylistModal";
-import EmptyPlaylists from "@/components/playlist/EmptyPlaylists";
-import EmptyDownloads from "@/components/playlist/EmptyDownloads";
-import { baseUrl } from "@/constants";
-import { Playlist } from "@/constants/Types";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Playlist } from "@/constants/Types";
+import { Swipeable } from "react-native-gesture-handler";
+import { useAudio } from "@/contexts/AudioContext";
 
-const PlaylistManager: React.FC = () => {
+const Library: React.FC = () => {
+  const router = useRouter();
+  const { addToQueue } = useAudio(); // add-to-queue from your audio context
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<"playlists" | "downloads">(
-    "playlists"
-  );
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [downloads, setDownloads] = useState<Playlist[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isAddPlaylistModalVisible, setIsAddPlaylistModalVisible] =
-    useState(false);
+  const [likedSongs, setLikedSongs] = useState<any[]>([]);
+  const [likedLoading, setLikedLoading] = useState<boolean>(false);
 
-  const [userId, setUserId] = useState<string | null>(null);
+  // Add playlist modal state
+  const [showAdd, setShowAdd] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [creating, setCreating] = useState(false);
 
-  // Fetch userId from AsyncStorage
-  useEffect(() => {
-    const fetchUserId = async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem("userId");
-        if (storedUserId) {
-          setUserId(storedUserId);
-        } else {
-          console.warn("User ID not found in AsyncStorage");
-        }
-      } catch (error) {
-        console.error("Error fetching user ID:", error);
-      }
-    };
-
-    fetchUserId();
-  }, []);
-
-  // Fetch playlists when userId is available
-  useEffect(() => {
-    const fetchPlaylists = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get(
-          `https://apostle.onrender.com/api/playlist/getUserAllPlayList`,
-          { withCredentials: true }
-        );
-        setPlaylists(response.data.data); // Assuming `response.data.data` holds the playlists
-      } catch (error) {
-        console.error("Error fetching playlists:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPlaylists();
-  }, []);
-
-  const refresh = async () => {
+  // Load playlists
+  const fetchPlaylists = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `https://apostle.onrender.com/api/playlist/getUserAllPlayList`,
+        "https://apostle.onrender.com/api/playlist/getUserAllPlayList",
         { withCredentials: true }
       );
-      setPlaylists(response.data.data); // Assuming `data` contains playlists
+      setPlaylists(response.data?.data ?? []);
     } catch (error) {
-      console.error("Error refreshing playlists:", error);
+      console.error("Error fetching playlists:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredPlaylists = playlists.filter((playlist) =>
-    playlist.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const filteredDownloads = downloads.filter((download) =>
-    download.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Load liked songs
+  const fetchLikedSongs = async () => {
+    try {
+      setLikedLoading(true);
+      const res = await axios.get(
+        "https://apostle.onrender.com/api/song/getLikedSongs",
+        { withCredentials: true }
+      );
+      const payload = Array.isArray(res.data) ? res.data[0] : res.data;
+      const songs = payload?.songs ?? [];
+      setLikedSongs(Array.isArray(songs) ? songs : []);
+    } catch (e) {
+      console.error("Error fetching liked songs:", e);
+      setLikedSongs([]);
+    } finally {
+      setLikedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlaylists();
+    fetchLikedSongs();
+  }, []);
+
+  const refresh = async () => {
+    await Promise.all([fetchPlaylists(), fetchLikedSongs()]);
+  };
+
+  // Create playlist
+  const createPlaylist = async () => {
+    const name = newPlaylistName.trim();
+    if (!name) return;
+    try {
+      setCreating(true);
+      const res = await axios.post(
+        "https://apostle.onrender.com/api/playlist/newPlayList",
+        { name },
+        { withCredentials: true }
+      );
+      // refresh lists
+      await fetchPlaylists();
+      setShowAdd(false);
+      setNewPlaylistName("");
+    } catch (e: any) {
+      console.error("Error creating playlist:", e?.response?.data ?? e);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // Open liked songs view (navigate to your liked songs route)
+  const openLikedSongs = () => {
+    // Replace with your actual route
+    // e.g., router.push("/tabs/liked")
+    router.push("/tabs/liked");
+  };
+
+  // Open a specific playlist
+  const openPlaylist = (playlistId: string) => {
+    router.push(`/tabs/playlist/${playlistId}` as any);
+  };
+
+  // Delete playlist (POST with id)
+  const deletePlaylist = async (playlistId: string) => {
+    try {
+      await axios.post(
+        "https://apostle.onrender.com/api/playlist/deletePlayList",
+        { _id: playlistId },
+        { withCredentials: true }
+      );
+      await fetchPlaylists();
+    } catch (e: any) {
+      console.error("Error deleting playlist:", e?.response?.data ?? e);
+    }
+  };
+
+  // Only keep RIGHT swipe (Delete). Remove left swipe/Add to Queue.
+  const renderRightActions = (playlistId: string) => (
+    <View style={[tw`flex-row`, { alignItems: "center" }]}>
+      <TouchableOpacity
+        onPress={() => deletePlaylist(playlistId)}
+        style={[
+          tw`px-4 py-3 rounded-xl ml-2`,
+          { backgroundColor: "#fbe9e7", borderWidth: 1, borderColor: "#f5c6c2" },
+        ]}
+      >
+        <View style={tw`flex-row items-center`}>
+          <Ionicons name="trash" size={18} color="#d32f2f" />
+          <Text style={[tw`ml-2 text-red-700`, { fontWeight: "700" }]}>Delete</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 
-  const handleAddPlaylistButton = () => {
-    setIsAddPlaylistModalVisible(true);
+  const renderPlaylistItem = ({ item }: { item: any }) => {
+    return (
+      <Swipeable
+        renderRightActions={() => renderRightActions(item._id)}
+        overshootRight={false}
+        overshootLeft={false}
+      >
+        <View
+          style={[
+            tw`flex-row items-center p-3 mb-3 rounded-2xl`,
+            { backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#eaeaea" },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => openPlaylist(item._id)}
+            activeOpacity={0.9}
+            style={tw`flex-row items-center flex-1`}
+          >
+            <View
+              style={[
+                tw`w-14 h-14 rounded-xl mr-3`,
+                { backgroundColor: "#f1f1f1", overflow: "hidden" },
+              ]}
+            >
+              {item.tracks?.[0]?.trackImg ? (
+                <Image
+                  source={{ uri: item.tracks[0].trackImg }}
+                  style={tw`w-full h-full`}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={tw`flex-1 items-center justify-center`}>
+                  <Ionicons name="albums" size={22} color="#9e9e9e" />
+                </View>
+              )}
+            </View>
+
+            <View style={tw`flex-1`}>
+              <Text style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={[tw`text-gray-500`, { fontSize: 12 }]} numberOfLines={1}>
+                {item.tracksId?.length || item.tracks?.length || 0} songs
+              </Text>
+            </View>
+
+            <Ionicons name="chevron-forward" size={18} color="#9e9e9e" />
+          </TouchableOpacity>
+        </View>
+      </Swipeable>
+    );
   };
 
   return (
-    <>
-      {/* <Topbar /> */}
+    <View style={[tw`flex-1`, { backgroundColor: "#fafafa" }]}>
+      {/* Header */}
+      <View style={tw`px-4 pt-6 pb-3 flex-row items-center justify-between`}>
+        <Text style={[tw`text-black`, { fontSize: 24, fontWeight: "800" }]}>Your Library</Text>
+        <TouchableOpacity
+          onPress={() => setShowAdd(true)}
+          style={[tw`px-3 py-2 rounded-xl`, { backgroundColor: "#eef2ff" }]}
+        >
+          <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>Add Playlist</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={activeTab === "playlists" ? filteredPlaylists : filteredDownloads}
-        renderItem={({ item }) => (
-          <PlaylistCard item={item} refresh={refresh} />
-        )}
-        keyExtractor={(item: any) => item._id.toString()} // Ensure `_id` is unique and stringified
+        data={playlists}
+        keyExtractor={(item: any) => item._id?.toString?.() ?? String(item._id)}
+        renderItem={renderPlaylistItem}
+        contentContainerStyle={tw`px-4 pb-20`}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <>
-            <View style={tw`flex-row items-center mx-4 my-4`}>
-             <Text style={tw`text-[30px] font-semibold`}>
-              Your Library
-             </Text>
-            </View>
-            <View style={tw`flex-row px-3 mb-4`}>
-              <Tab
-                isActive={activeTab === "playlists"}
-                label="Playlists"
-                onPress={() => setActiveTab("playlists")}
-              />
-              <Tab
-                isActive={activeTab === "downloads"}
-                label="Downloads"
-                onPress={() => setActiveTab("downloads")}
-              />
-            </View>
-          </>
+          <View>
+            {/* Liked Songs Card */}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={openLikedSongs}
+              style={[
+                tw`rounded-2xl mb-10`,
+                { backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#eaeaea" },
+              ]}
+            >
+              <View style={tw`flex-row items-center justify-between px-4 pt-4`}>
+                <View style={tw`flex-row items-center`}>
+                  <View
+                    style={[
+                      tw`w-9 h-9 rounded-xl items-center justify-center`,
+                      { backgroundColor: "#f1f3f5" },
+                    ]}
+                  >
+                    <Ionicons name="heart" size={18} color="#e91e63" />
+                  </View>
+                  <View style={tw`ml-3`}>
+                    <Text style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]}>
+                      Liked Songs
+                    </Text>
+                    <Text style={[tw`text-gray-500 mt-0.5`, { fontSize: 12 }]}>
+                      {likedLoading ? "Loading…" : `${likedSongs.length} songs`}
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  onPress={openLikedSongs}
+                  style={[tw`px-3 py-2 rounded-xl`, { backgroundColor: "#eef2ff" }]}
+                >
+                  <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>
+                    View All
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Preview artworks */}
+              <View style={tw`px-4 py-4`}>
+                {likedLoading ? (
+                  <View style={tw`flex-row`}>
+                    {[0, 1, 2, 3].map((i) => (
+                      <View
+                        key={`sk-${i}`}
+                        style={[
+                          tw`mr-2 rounded-xl`,
+                          { width: 70, height: 70, backgroundColor: "#f1f3f5" },
+                        ]}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  <View style={tw`flex-row`}>
+                    {likedSongs.slice(0, 4).map((s, i) => (
+                      <View key={s._id ?? `${s.trackId}-${i}`} style={tw`mr-2`}>
+                        <Image
+                          source={{ uri: s.trackImg }}
+                          style={[tw`rounded-xl`, { width: 70, height: 70 }]}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    ))}
+                    {likedSongs.length === 0 && (
+                      <Text style={[tw`text-gray-500`, { fontSize: 12 }]}>
+                        No liked songs yet
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+
+            {/* Section title */}
+            <Text style={[tw`text-black mb-3`, { fontSize: 16, fontWeight: "700" }]}>
+              Playlists
+            </Text>
+
+            {isLoading && (
+              <View style={tw`py-3`}>
+                <ActivityIndicator />
+              </View>
+            )}
+          </View>
         }
         ListEmptyComponent={
-          activeTab === "playlists" ? (
-            <EmptyPlaylists onCreatePlaylist={handleAddPlaylistButton} />
-          ) : (
-            <EmptyDownloads />
-          )
+          !isLoading ? (
+            <View style={tw`items-center mt-10`}>
+              <Text style={[tw`text-gray-500`, { fontSize: 14 }]}>
+                No playlists found
+              </Text>
+              <TouchableOpacity
+                onPress={refresh}
+                style={[tw`mt-3 px-4 py-2 rounded-xl`, { backgroundColor: "#eef2ff" }]}
+              >
+                <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>
+                  Refresh
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
         }
-        contentContainerStyle={tw`flex-grow pb-[50%]`} // Ensures proper layout and padding
-        showsVerticalScrollIndicator={false} // Optional: Hides the vertical scrollbar
       />
 
-      <AddPlaylistModal
-        visible={isAddPlaylistModalVisible}
-        onClose={() => {
-          setIsAddPlaylistModalVisible(false);
-          refresh();
-        }}
-        playlists={playlists}
-        setPlaylists={setPlaylists}
-      />
-    </>
+      {/* Add Playlist Modal */}
+      <Modal visible={showAdd} transparent animationType="fade" onRequestClose={() => setShowAdd(false)}>
+        <TouchableOpacity style={tw`flex-1 bg-black/30`} activeOpacity={1} onPress={() => setShowAdd(false)}>
+          <View style={tw`absolute left-4 right-4 top-[25%] bg-white rounded-2xl p-5`}>
+            <Text style={[tw`text-black mb-3`, { fontSize: 18, fontWeight: "800" }]}>Create Playlist</Text>
+            <TextInput
+              placeholder="Playlist name"
+              value={newPlaylistName}
+              onChangeText={setNewPlaylistName}
+              style={[
+                tw`w-full px-3 py-3 rounded-xl mb-3`,
+                { backgroundColor: "#f5f7fb", color: "#000" },
+              ]}
+              placeholderTextColor="#9aa0a6"
+            />
+            <View style={tw`flex-row`}>
+              <TouchableOpacity
+                onPress={() => setShowAdd(false)}
+                style={[tw`flex-1 px-3 py-3 rounded-xl mr-2`, { backgroundColor: "#f1f3f5" }]}
+                disabled={creating}
+              >
+                <Text style={[tw`text-black text-center`, { fontWeight: "700" }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={createPlaylist}
+                style={[
+                  tw`flex-1 px-3 py-3 rounded-xl`,
+                  { backgroundColor: newPlaylistName.trim() ? "#2e77ff" : "#aac5ff" },
+                ]}
+                disabled={!newPlaylistName.trim() || creating}
+              >
+                <Text style={[tw`text-white text-center`, { fontWeight: "700" }]}>
+                  {creating ? "Creating…" : "Create"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
   );
 };
 
-export default PlaylistManager;
+export default Library;

@@ -1,16 +1,14 @@
 import React from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack } from "expo-router";
-import { PlayerProvider } from "../components/player/PlayerContext";
-import TrackPlayer from "react-native-track-player";
-
-// Register the playback service
-TrackPlayer.registerPlaybackService(() => require('../services/trackPlayerService').playbackService);
+import { PlayerProvider } from "@/components/player/PlayerContext";
 
 export default function RootLayout() {
-  // Remove duplicate setup; PlayerProvider will initialize as needed
   return (
-    <PlayerProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </PlayerProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PlayerProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </PlayerProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -70,7 +70,7 @@ const Layout = () => {
                 <TouchableOpacity
                   key={index}
                   style={tw`flex-row items-center px-5 py-1`}
-                  onPress={() => router.push(link.path)}
+                  onPress={() => router.push(link.path as any)}
                 >
                   {isActive ? link.activeIcon : link.inactiveIcon}
                 </TouchableOpacity>

@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 import { Ionicons } from '@expo/vector-icons';
 import { useFetchSongs } from '@/hooks/useFetchSongs';
-import { useAudio } from '@/contexts/AudioContext';
+import { usePlayer } from '@/components/player/PlayerContext'; // changed: use PlayerContext
 
 // Simple helper to normalize author/id mapping
 const normalize = (s: string) => s.trim().toLowerCase();
@@ -17,7 +17,7 @@ export default function ArtistPage() {
 
   // Fetch all songs then filter locally for now (until dedicated endpoint exists)
   const { songs, loading, error } = useFetchSongs('https://apostle.onrender.com/api/song/getAllSongs');
-  const { playPauseSong } = useAudio();
+  const { playById } = usePlayer(); // changed
 
   const artistSongs = useMemo(() => {
     return songs.filter(s => normalize(s.author || '') === normalize(artistId));
@@ -86,13 +86,7 @@ export default function ArtistPage() {
             <View key={song.id} style={tw`flex-row items-center justify-between py-3`}>
               <TouchableOpacity
                 style={tw`flex-row items-center gap-3 flex-1`}
-                onPress={() => playPauseSong({
-                  trackId: song.id,
-                  trackUrl: song.trackUrl,
-                  title: song.title,
-                  trackImg: (song.cover as any).uri,
-                  author: song.author || artistId
-                })}
+                onPress={() => song.id && playById(song.id)} // changed: play by id
               >
                 <Image source={song.cover} style={tw`w-12 h-12 rounded-lg`} />
                 <View style={tw`flex-1`}>

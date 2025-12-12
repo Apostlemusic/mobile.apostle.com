@@ -8,6 +8,7 @@ import { Controls } from "./Controls";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { MoreMenu } from './MoreMenu';
 import { QueueModal } from './QueueModal';
+import AddToPlaylistModal from '../playlist/AddToPlaylist';
 
 interface FullPlayerProps {
   onClose: () => void;
@@ -17,6 +18,7 @@ interface FullPlayerProps {
 export function FullPlayer({ onClose, onLyricsToggle }: FullPlayerProps) {
   const [showMore, setShowMore] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
   const {
     currentSong,
     progress,
@@ -84,10 +86,16 @@ export function FullPlayer({ onClose, onLyricsToggle }: FullPlayerProps) {
       visible={showMore}
       onClose={() => setShowMore(false)}
       onShowQueue={() => setShowQueue(true)}
+      onShowAddToPlaylist={() => setShowAddToPlaylist(true)}
     />
     <QueueModal
       visible={showQueue}
       onClose={() => setShowQueue(false)}
+    />
+    <AddToPlaylistModal
+      isVisible={showAddToPlaylist}
+      onClose={() => setShowAddToPlaylist(false)}
+      trackId={currentSong.trackId}
     />
     </>
   );

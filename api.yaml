@@ -1,0 +1,757 @@
+swagger: '2.0'
+info: 
+  title: Apostle music app server API Documentation
+  description: API documentation for Apostle music app.
+  version: 1.0
+  contact: 
+    email: successakinyemi365@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://apache.org/'
+host: apostle.onrender.com
+basePath: /               
+schemes:
+  - https
+
+paths:
+  /:
+    get:
+      summary: Home GET request
+      description: Server base endpoint
+      responses:
+        200:
+          description: Success
+
+  /api/auth/register:
+    post:
+      summary: Register new user
+      description: Register a user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - name
+              - password
+            properties:
+              email:
+                type: string
+              name:
+                type: string
+              password:
+                type: string
+      responses:
+        201: 
+          description: Signup successful verification OTP sent to user email address
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/resendOtp:
+    post:
+      summary: Resend Verification OTP 
+      description: Resend Verification OTP to user email address with otp code
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+      responses:
+        201: 
+          description: success
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/verifyOtp:
+    post:
+      summary: Verify OTP 
+      description: Verify user email address with otp code
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - otp
+            properties:
+              otp:
+                type: string
+      responses:
+        201: 
+          description: Account Verified
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/login:
+    post:
+      summary: User Login
+      description: Login a user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200: 
+          description: Signup successful but account not verified
+        201: 
+          description: Signup successful, user data sent
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/forgotPassword:
+    post:
+      summary: Forgot Password
+      description: Forgot password request endpoint recives an email and send an OTP forgot password code to user email
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+      responses:
+        200: 
+          description: Reset password Otp successful sent
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/resetPassword:
+    post:
+      summary: Reset Password
+      description: Reset password request endpoint to update user password password reset OTP is required
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - otp
+              - password
+            properties:
+              otp:
+                type: string
+              password:
+                type: string
+      responses:
+        200: 
+          description: Password reset successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/logout:
+    post:
+      summary: Logout a user
+      description: Logout a user
+      responses:
+        200:
+          description: Success
+
+  /api/auth/verifyToken:
+    post:
+      summary: Verify userAuthenticated
+      description: Verify the Authentication Status of a user
+      responses:
+        200:
+          description: Authenicated
+        403:
+          description: Unauthenticated
+        500:
+          description: server error
+
+  /api/category/getAllCategory:
+    get:
+      summary: Get categories
+      description: Get categories
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/category/getCategory/{categorySlug}:
+    get:
+      summary: Get category
+      description: Retrieve a category by its slug
+      parameters:
+        - in: path
+          name: categorySlug
+          required: true
+          schema:
+            type: string
+          description: The slug of the category to retrieve
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/category/getAllGenre:
+    get:
+      summary: Get all Genre
+      description: Get all Genre
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/category/getGenre/{genreSlug}:
+    get:
+      summary: Get a genre
+      description: Retrieve a genre by its slug
+      parameters:
+        - in: path
+          name: genreSlug
+          required: true
+          schema:
+            type: string
+          description: The slug of the genre to retrieve
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getAllSongs:
+    get:
+      summary: Get all songs
+      description: Get all songs with pagination
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getASongs/:id:
+    get:
+      summary: Get a song requires trackId as parameter
+      description:  Get a song requires trackId as parameter
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getSongByCategory/:category:
+    get:
+      summary: Get all songs by category name
+      description:  Get all songs by category name
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getSongLyrics/:id:
+    get:
+      summary: Get a song lyrics requires trackId as parameter
+      description:  Get a song lyrics requires trackId as parameter
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getRecentPlays:
+    get:
+      summary: Get top recent played songs by user
+      description:  Get top recent played songs by user
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getQuickPicks:
+    get:
+      summary: Get quick picks randomly select songs for user
+      description:  Get quick picks randomly select songs for user
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getNewRelease:
+    get:
+      summary: Get New Release
+      description:  Get newly released songs
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getRecommended:
+    get:
+      summary: Get Recommendation
+      description:  Get songs recommendations for user based on user past histroy
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/getSongWithQuery/:query:
+    get:
+      summary: Get songs with user search query
+      description:  Get songs with user search query
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error         
+
+  /api/song/getLikedSongs:
+    get:
+      summary: Get all liked songs of a user
+      description: Get all liked songs of a user with pagination
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/song/handleLike:
+    post:
+      summary: Handle Like of a song
+      description: Handle like or unlike of a song
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - trackId
+            properties:
+              trackId:
+                type: string
+      responses:
+        201: 
+          description: success - 
+        400:
+          description: User error
+        500: 
+          description: Server error
+   
+  /api/playlist/newPlayList:
+    post:
+      summary: Create new Play List
+      description: Create a new Play List by user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+      responses:
+        201: 
+          description: success - New play list created
+        400:
+          description: User error
+        500: 
+          description: Server error
+         
+  /api/playlist/addToPlayList:
+    post:
+      summary: Add Track to play list 
+      description: Add new track to play list. requires playlist _id and trackId
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+              - trackId
+            properties:
+              _id:
+                type: string
+              trackId:
+                type: string
+      responses:
+        201: 
+          description: success - New track added to Play list
+        400:
+          description: User error
+        500: 
+          description: Server error
+                  
+  /api/playlist/deletePlayList:
+    post:
+      summary: Delete play list 
+      description: Delete a play list. requires playlist _id. note all songs in that play list would also be deleted
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+            properties:
+              _id:
+                type: string
+      responses:
+        201: 
+          description: success - Play list deleted
+        400:
+          description: User error
+        500: 
+          description: Server error
+                  
+  /api/playlist/removeTrackFromPlayList:
+    post:
+      summary: Remove a track from a user play list 
+      description: Remove a track from a user play list. requires playlist _id and trackId. 
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+              - trackId
+            properties:
+              _id:
+                type: string
+              trackId: 
+                type: string
+      responses:
+        201: 
+          description: success - Track removed from playlist
+        400:
+          description: User error
+        500: 
+          description: Server error
+                     
+  /api/playlist/getUserAllPlayList:
+    get:
+      summary: Get user play list
+      description:  Get all play list of a user
+      responses:
+        200:
+          description: Success
+        400:
+          description: User error
+        500:
+          description: Server Error
+
+  /api/playlist/getUserPlayList/:_id:
+    get:
+      summary: Get user play list
+      description:  Get a play list of a user and the play list details
+      responses:
+        200:
+          description: Success
+        400:
+          description: User error
+        500:
+          description: Server Error        
+
+  /api/artist/createArtist:
+    post:
+      summary: Create a new artist
+      description: Admin creates a new artist. Supports image upload.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                name:
+                  type: string
+                about:
+                  type: string
+                description:
+                  type: string
+                profileImg:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Artist created successfully
+        400:
+          description: Validation Error
+        403:
+          description: Unauthorized
+        500:
+          description: Server Error
+
+  /api/artist/updateArtist/{artistId}:
+    post:
+      summary: Update an artist
+      description: Only the admin who created the artist can update it. Supports image upload.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                name:
+                  type: string
+                about:
+                  type: string
+                description:
+                  type: string
+                profileImg:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Artist updated successfully
+        403:
+          description: Unauthorized
+        404:
+          description: Artist not found
+        500:
+          description: Server Error
+
+  /api/artist/deleteArtist:
+    post:
+      summary: Delete an artist
+      description: Only the admin who created the artist can delete it.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artistId:
+                  type: string
+      responses:
+        200:
+          description: Artist deleted successfully
+        403:
+          description: Unauthorized
+        404:
+          description: Artist not found
+        500:
+          description: Server Error
+
+  /api/artist/followArtist:
+    post:
+      summary: Follow or unfollow an artist
+      description: User toggles follow/unfollow on an artist.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artistId:
+                  type: string
+      responses:
+        200:
+          description: Follow state updated
+        404:
+          description: Artist not found
+        500:
+          description: Server Error
+
+  /api/artist/likeArtist:
+    post:
+      summary: Like or unlike an artist
+      description: User toggles like/unlike on an artist.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artistId:
+                  type: string
+      responses:
+        200:
+          description: Like state updated
+        404:
+          description: Artist not found
+        500:
+          description: Server Error
+
+  /api/artist/getAllArtists:
+    get:
+      summary: Get all artists
+      description: Get artists with pagination, search, type filter, and sorting (popular/newest).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [popular, newest]
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/artist/getArtistById/{artistId}:
+    get:
+      summary: Get artist by ID
+      description: Public route to fetch single artist.
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+        404:
+          description: Artist not found
+        500:
+          description: Server Error
+
+  /api/artist/getMyArtists:
+    get:
+      summary: Get all artists created by logged-in admin
+      description: Admin fetches their own created artists.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/artist/getLikedArtists:
+    get:
+      summary: Get all artists liked by the user
+      description: User fetches liked artists list.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error
+
+  /api/artist/getFollowedArtists:
+    get:
+      summary: Get all artists followed by the user
+      description: User fetches followed artists list.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Success
+        500:
+          description: Server Error

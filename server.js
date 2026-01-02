@@ -24,7 +24,7 @@ const allowedOrigins = [
     process.env.ADMIN_URL,
     process.env.SERVER_URL,
     '*',
-];
+].filter(Boolean);
 
 const app = express();
 const server = http.createServer(app); 
@@ -40,14 +40,26 @@ app.use(bodyParser.urlencoded({ limit: "200mb", extended: true }));
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // console.log('URL ORIGIN', origin);
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS', 'ORIGIN>', origin));
-        }
+        // Normalize configured origins and request origin (remove trailing slash)
+        const normalizedConfig = allowedOrigins.map(o => (typeof o === 'string' ? o.replace(/\/$/, '') : o));
+        const reqOrigin = typeof origin === 'string' ? origin.replace(/\/$/, '') : origin;
+
+        // Allow non-browser requests or same-origin (no origin header)
+        if (!reqOrigin) return callback(null, true);
+
+        // Dev override to allow all origins
+        if (process.env.ALLOW_ALL_ORIGINS === 'true') return callback(null, true);
+
+        // If wildcard configured, reflect the request origin (required when credentials: true)
+        if (normalizedConfig.includes('*')) return callback(null, true);
+
+        // Exact match against configured origins
+        if (normalizedConfig.includes(reqOrigin)) return callback(null, true);
+
+        // Block otherwise
+        return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };

@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import axios from "axios";
 import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { addTrackToPlaylist, getUserPlaylists } from "@/services/content";
 
 const AddToPlaylistModal = ({
   isVisible,
@@ -18,25 +19,35 @@ const AddToPlaylistModal = ({
 }: {
   isVisible: boolean;
   onClose: () => void;
-  trackId: string;
+  trackId: string; // NOTE: keep prop name for UI compatibility; pass Mongo _id here going forward
 }) => {
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedPlaylist, setSelectedPlaylist] = useState<{ _id: string; name: string } | null>(null);
   const [adding, setAdding] = useState(false);
 
+  const getUserId = async () =>
+    (await AsyncStorage.getItem("userId")) ||
+    (await AsyncStorage.getItem("apostle.userId"));
+
   // Fetch the user's playlists
   const fetchPlaylists = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(
-        "https://apostle.onrender.com/api/playlist/getUserAllPlayList",
-        { withCredentials: true }
-      );
-      const list = response.data?.data ?? [];
+      const userId = await getUserId();
+      if (!userId) {
+        setPlaylists([]);
+        return;
+      }
+
+      const data = await getUserPlaylists(userId);
+
+      // ✅ FIX: use the normalized key from the service
+      const list = (data?.playlists ?? []) as any[];
       setPlaylists(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error("Error fetching playlists:", error);
+      setPlaylists([]);
     } finally {
       setIsLoading(false);
     }
@@ -55,18 +66,17 @@ const AddToPlaylistModal = ({
 
   // Handle adding a track to a playlist
   const handleAddToPlaylist = async () => {
-    if (!selectedPlaylist?._id || !trackId) {
-      return;
-    }
+    if (!selectedPlaylist?._id || !trackId) return;
 
     try {
       setAdding(true);
-      const response = await axios.post(
-        "https://apostle.onrender.com/api/playlist/addToPlayList",
-        { _id: selectedPlaylist._id, trackId },
-        { withCredentials: true }
-      );
-      console.log("Track added:", response.data);
+
+      // Postman: POST /api/content/playlists/add { playlistId, trackId }
+      await addTrackToPlaylist({
+        playlistId: selectedPlaylist._id,
+        trackId,
+      });
+
       onClose();
     } catch (error: any) {
       console.error("Error adding track to playlist:", error?.response?.data ?? error);

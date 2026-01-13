@@ -1,69 +1,79 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import tw from "twrnc";
-import { Ionicons } from "@expo/vector-icons";
+import { forgotPassword } from "@/services/auth";
+import { getAuthEmail } from "@/lib/auth/tokens";
 import Input from "@/components/reusable/Input";
-import ArrowButton from "@/components/reusable/Button";
-import { router } from "expo-router";
-import axios from "axios";
+import { Ionicons } from "@expo/vector-icons";
 
-const ForgotPassword = () => {
-  const [email, setEmail] = useState<string>("");
+export default function Forgotpassword() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleForgotPassword = async () => {
+  useEffect(() => {
+    (async () => {
+      const saved = await getAuthEmail();
+      if (saved) setEmail(saved);
+    })();
+  }, []);
+
+  const onSubmit = async () => {
     if (!email) {
-      Alert.alert("Validation Error", "Please enter your email address.");
+      Alert.alert("Forgot password", "Enter your email.");
       return;
     }
-
+    setSubmitting(true);
     try {
-      const response = await axios.post(
-        "https://apostle.onrender.com/api/auth/forgotPassword",
-        { email }
-      );
-
-      if (response.status === 200) {
-        Alert.alert(
-          "Email Sent",
-          "A verification code has been sent to your email."
-        );
-        router.push("/Auth/Forgotpassword/Verify");
-      }
-    } catch (error: any) {
-      Alert.alert(
-        "Error",
-        error.response?.data?.message ||
-          "Something went wrong. Please try again."
-      );
+      await forgotPassword(email);
+      Alert.alert("OTP sent", "Check your email for the reset OTP.");
+      router.push("/Auth/Resetpassword");
+    } catch (e: any) {
+      Alert.alert("Request failed", e?.response?.data?.message ?? "Try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <View style={tw`flex-1 bg-white p-4 pt-[10%]`}>
-      {/* Back Button */}
-      <TouchableOpacity onPress={() => router.back()} style={tw`my-5`}>
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
+    <SafeAreaView style={tw`flex-1 bg-white`}>
+      <View style={tw`flex-1 bg-white p-4`}>
+        {/* Back Button */}
+        <TouchableOpacity onPress={() => router.back()} style={tw`my-5`}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
 
-      {/* Forgot Password Header */}
-      <Text style={tw`text-2xl font-bold mb-4 text-center`}>Forgot Password</Text>
-      <Text style={tw` text-base mb-8 text-center`}>
-        Please enter your registered email address to receive a verification
-        code.
-      </Text>
+        {/* Forgot Password Header */}
+        <Text style={tw`text-2xl font-bold mb-4 text-center`}>
+          Forgot Password
+        </Text>
+        <Text style={tw`text-base mb-8 text-center`}>
+          Please enter your registered email address to receive a verification
+          code.
+        </Text>
 
-      {/* Input Fields */}
-      <Input onChangeText={setEmail} value={email} label="Email" />
+        {/* Input Fields */}
+        <Input onChangeText={setEmail} value={email} label="Email" />
 
-      {/* Submit Button */}
-      <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
-        onPress={handleForgotPassword}
-      >
-        <Text style={tw`text-white text-lg`}>Continue</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={tw`w-full h-[47px] rounded-md flex items-center bg-[#264252] justify-center mt-12`}
+          onPress={onSubmit}
+          disabled={submitting}
+        >
+          <Text style={tw`text-white font-semibold`}>
+            {submitting ? <ActivityIndicator color="white" /> : "Reset"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
-};
-
-export default ForgotPassword;
+}

@@ -12,12 +12,12 @@ import {
 import { useRouter, useGlobalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "twrnc";
-import axios from "axios";
 import { Audio } from "expo-av";
 import {
   GestureHandlerRootView,
   Swipeable,
 } from "react-native-gesture-handler";
+import { getPlaylistById, removeTrackFromPlaylist } from "@/services/content";
 
 const PlaylistPage = () => {
   const { id } = useGlobalSearchParams(); // Get the playlist ID from the route
@@ -33,11 +33,12 @@ const PlaylistPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(
-        `https://apostle.onrender.com/api/playlist/getUserPlayList/${id}`
-      );
-      setPlaylist(response.data.data);
-      console.log(response.data.data);
+      const playlistId = Array.isArray(id) ? id[0] : (id as string);
+      const data = await getPlaylistById(playlistId);
+
+      // Try common shapes
+      const p = data?.playlist ?? data?.data ?? data;
+      setPlaylist(p);
     } catch (error) {
       console.error("Error fetching playlist:", error);
       setError("Failed to load playlist. Please try again.");
@@ -48,25 +49,15 @@ const PlaylistPage = () => {
     }
   };
 
-  const removeTrackFromPlaylist = async (trackId: string) => {
+  const removeTrack = async (trackId: string) => {
     try {
-      const response = await axios.post(
-        `https://apostle.onrender.com/api/playlist/removeTrackFromPlayList`,
-        {
-          _id: id,
-          trackId, // Send _id and trackId in the data payload
-        }
-      );
-      console.log(response.data);
-      if (response.status === 200) {
-        // Remove the track from the state after successful deletion
-        setPlaylist((prevPlaylist: any) => ({
-          ...prevPlaylist,
-          tracks: prevPlaylist.tracks.filter(
-            (track: any) => track.trackId !== trackId
-          ),
-        }));
-      }
+      const playlistId = Array.isArray(id) ? id[0] : (id as string);
+      await removeTrackFromPlaylist({ playlistId, trackId });
+
+      setPlaylist((prevPlaylist: any) => ({
+        ...prevPlaylist,
+        tracks: prevPlaylist.tracks.filter((track: any) => track.trackId !== trackId),
+      }));
     } catch (error: any) {
       console.error("Error removing track:", error);
     }
@@ -154,7 +145,7 @@ const PlaylistPage = () => {
 
   const renderRightActions = (trackId: string) => (
     <TouchableOpacity
-      onPress={() => removeTrackFromPlaylist(trackId)}
+      onPress={() => removeTrack(trackId)}
       style={tw`w-28 bg-red-500 justify-center items-center rounded-r-lg`}
     >
       <Text style={tw`text-white text-sm`}>Remove</Text>

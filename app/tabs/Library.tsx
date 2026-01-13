@@ -10,54 +10,82 @@ import {
   TextInput,
 } from "react-native";
 import tw from "twrnc";
-import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Playlist } from "@/constants/Types";
 import { Swipeable } from "react-native-gesture-handler";
 import { useAudio } from "@/contexts/AudioContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  deletePlaylist as apiDeletePlaylist,
+  getLikedSongs as apiGetLikedSongs,
+  getUserPlaylists as apiGetUserPlaylists,
+  onLikedUpdated,
+} from "@/services/content";
+import * as contentApi from "@/services/content";
 
 const Library: React.FC = () => {
   const router = useRouter();
-  const { addToQueue } = useAudio(); // add-to-queue from your audio context
+  const { addToQueue } = useAudio();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [likedSongs, setLikedSongs] = useState<any[]>([]);
   const [likedLoading, setLikedLoading] = useState<boolean>(false);
 
-  // Add playlist modal state
   const [showAdd, setShowAdd] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // Load playlists
+  const getUserId = async () =>
+    (await AsyncStorage.getItem("userId")) ||
+    (await AsyncStorage.getItem("apostle.userId"));
+
   const fetchPlaylists = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(
-        "https://apostle.onrender.com/api/playlist/getUserAllPlayList",
-        { withCredentials: true }
-      );
-      setPlaylists(response.data?.data ?? []);
+      const userId = await getUserId();
+      if (!userId) {
+        setPlaylists([]);
+        return;
+      }
+
+      // Postman: GET /api/content/playlists?userId={{userId}}
+      // returns: { success:true, playLists:[...] }
+      const data = await apiGetUserPlaylists(userId);
+      const list = Array.isArray(data?.playLists)
+        ? data.playLists
+        : Array.isArray(data?.playlists)
+          ? data.playlists
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+      setPlaylists(list as any);
     } catch (error) {
       console.error("Error fetching playlists:", error);
+      setPlaylists([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Load liked songs
   const fetchLikedSongs = async () => {
     try {
       setLikedLoading(true);
-      const res = await axios.get(
-        "https://apostle.onrender.com/api/song/getLikedSongs",
-        { withCredentials: true }
-      );
-      const payload = Array.isArray(res.data) ? res.data[0] : res.data;
-      const songs = payload?.songs ?? [];
-      setLikedSongs(Array.isArray(songs) ? songs : []);
+      const userId = await getUserId();
+      if (!userId) {
+        setLikedSongs([]);
+        return;
+      }
+
+      // ✅ Postman: GET /api/content/songs/liked?userId={{userId}}
+      const data = await apiGetLikedSongs(userId);
+      const songs = Array.isArray(data?.songs)
+        ? data.songs
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
+      setLikedSongs(songs);
     } catch (e) {
       console.error("Error fetching liked songs:", e);
       setLikedSongs([]);
@@ -69,24 +97,33 @@ const Library: React.FC = () => {
   useEffect(() => {
     fetchPlaylists();
     fetchLikedSongs();
+
+    // ✅ refresh liked card automatically after like/unlike anywhere
+    const unsub = onLikedUpdated(() => {
+      fetchLikedSongs();
+    });
+    return () => {
+      if (typeof unsub === "function") void unsub();
+    };
   }, []);
 
   const refresh = async () => {
     await Promise.all([fetchPlaylists(), fetchLikedSongs()]);
   };
 
-  // Create playlist
   const createPlaylist = async () => {
     const name = newPlaylistName.trim();
     if (!name) return;
+
     try {
       setCreating(true);
-      const res = await axios.post(
-        "https://apostle.onrender.com/api/playlist/newPlayList",
-        { name },
-        { withCredentials: true }
-      );
-      // refresh lists
+      const userId = await getUserId();
+      if (!userId) return;
+
+      // ✅ use centralized api client (baseURL + auth), not fetch("/api/...") which breaks on device
+      // call via namespace import and cast to any in case the named export isn't present
+      await (contentApi as any).createPlaylist({ name, userId });
+
       await fetchPlaylists();
       setShowAdd(false);
       setNewPlaylistName("");
@@ -96,27 +133,18 @@ const Library: React.FC = () => {
       setCreating(false);
     }
   };
-
-  // Open liked songs view (navigate to your liked songs route)
   const openLikedSongs = () => {
-    // Replace with your actual route
-    // e.g., router.push("/tabs/liked")
     router.push("/tabs/liked");
   };
 
-  // Open a specific playlist
   const openPlaylist = (playlistId: string) => {
     router.push(`/tabs/playlist/${playlistId}` as any);
   };
 
-  // Delete playlist (POST with id)
   const deletePlaylist = async (playlistId: string) => {
     try {
-      await axios.post(
-        "https://apostle.onrender.com/api/playlist/deletePlayList",
-        { _id: playlistId },
-        { withCredentials: true }
-      );
+      // Postman: DELETE /api/content/playlists { playlistId }
+      await apiDeletePlaylist({ playlistId });
       await fetchPlaylists();
     } catch (e: any) {
       console.error("Error deleting playlist:", e?.response?.data ?? e);
@@ -135,7 +163,9 @@ const Library: React.FC = () => {
       >
         <View style={tw`flex-row items-center`}>
           <Ionicons name="trash" size={18} color="#d32f2f" />
-          <Text style={[tw`ml-2 text-red-700`, { fontWeight: "700" }]}>Delete</Text>
+          <Text style={[tw`ml-2 text-red-700`, { fontWeight: "700" }]}>
+            Delete
+          </Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -179,10 +209,16 @@ const Library: React.FC = () => {
             </View>
 
             <View style={tw`flex-1`}>
-              <Text style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]} numberOfLines={1}>
+              <Text
+                style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]}
+                numberOfLines={1}
+              >
                 {item.name}
               </Text>
-              <Text style={[tw`text-gray-500`, { fontSize: 12 }]} numberOfLines={1}>
+              <Text
+                style={[tw`text-gray-500`, { fontSize: 12 }]}
+                numberOfLines={1}
+              >
                 {item.tracksId?.length || item.tracks?.length || 0} songs
               </Text>
             </View>
@@ -198,12 +234,16 @@ const Library: React.FC = () => {
     <View style={[tw`flex-1`, { backgroundColor: "#fafafa" }]}>
       {/* Header */}
       <View style={tw`px-4 pt-6 pb-3 flex-row items-center justify-between`}>
-        <Text style={[tw`text-black`, { fontSize: 24, fontWeight: "800" }]}>Your Library</Text>
+        <Text style={[tw`text-black`, { fontSize: 24, fontWeight: "800" }]}>
+          Your Library
+        </Text>
         <TouchableOpacity
           onPress={() => setShowAdd(true)}
           style={[tw`px-3 py-2 rounded-xl`, { backgroundColor: "#eef2ff" }]}
         >
-          <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>Add Playlist</Text>
+          <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>
+            Add Playlist
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -321,10 +361,21 @@ const Library: React.FC = () => {
       />
 
       {/* Add Playlist Modal */}
-      <Modal visible={showAdd} transparent animationType="fade" onRequestClose={() => setShowAdd(false)}>
-        <TouchableOpacity style={tw`flex-1 bg-black/30`} activeOpacity={1} onPress={() => setShowAdd(false)}>
+      <Modal
+        visible={showAdd}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAdd(false)}
+      >
+        <TouchableOpacity
+          style={tw`flex-1 bg-black/30`}
+          activeOpacity={1}
+          onPress={() => setShowAdd(false)}
+        >
           <View style={tw`absolute left-4 right-4 top-[25%] bg-white rounded-2xl p-5`}>
-            <Text style={[tw`text-black mb-3`, { fontSize: 18, fontWeight: "800" }]}>Create Playlist</Text>
+            <Text style={[tw`text-black mb-3`, { fontSize: 18, fontWeight: "800" }]}>
+              Create Playlist
+            </Text>
             <TextInput
               placeholder="Playlist name"
               value={newPlaylistName}
@@ -341,7 +392,9 @@ const Library: React.FC = () => {
                 style={[tw`flex-1 px-3 py-3 rounded-xl mr-2`, { backgroundColor: "#f1f3f5" }]}
                 disabled={creating}
               >
-                <Text style={[tw`text-black text-center`, { fontWeight: "700" }]}>Cancel</Text>
+                <Text style={[tw`text-black text-center`, { fontWeight: "700" }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={createPlaylist}

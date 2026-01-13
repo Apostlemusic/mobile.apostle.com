@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useRef } from "react";
-import TrackPlayer, { State, Event } from "react-native-track-player";
+import TrackPlayer, { State } from "react-native-track-player";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initTrackPlayer, simplePlayUrl } from "../../services/trackPlayerService";
 
 type PlayerContextType = {
@@ -11,53 +12,103 @@ type PlayerContextType = {
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
-async function fetchSongById(id: string) {
-  const res = await fetch(`https://apostle.onrender.com/api/song/getASongs/${id}`);
-  if (!res.ok) throw new Error(`Failed to fetch song ${id}`);
+const getBaseUrl = () =>
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.API_BASE_URL ||
+  "";
+
+/**
+ * ✅ You said you'll be using Mongo `_id` for fetching by id. Example:
+ * 695feebab51dace3ab702268
+ */
+const isMongoObjectId = (val: string) =>
+  /^[a-f\d]{24}$/i.test(String(val ?? "").trim());
+
+async function fetchSongByMongoId(id: string) {
+  const base = getBaseUrl();
+  if (!base) throw new Error("Missing API base url. Set EXPO_PUBLIC_API_BASE_URL.");
+
+  // attach auth if required by backend
+  const token =
+    (await AsyncStorage.getItem("accessToken")) ||
+    (await AsyncStorage.getItem("token")) ||
+    (await AsyncStorage.getItem("authToken")) ||
+    (await AsyncStorage.getItem("apostle.token")) ||
+    (await AsyncStorage.getItem("apostle.accessToken"));
+
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+  const res = await fetch(`${base}/api/content/songs/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers,
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Failed to fetch song ${id} (${res.status}) ${body}`);
+  }
+
   const json = await res.json();
-  const s = json?.data ?? json;
-  const url = s?.trackUrl || s?.url || s?.audioUrl;
+  const s = json?.song ?? json?.data ?? json;
+
+  const url =
+    s?.trackUrl || s?.url || s?.audioUrl || s?.previewUrl || s?.streamUrl;
   if (!url) throw new Error("No trackUrl found in response");
+
   return {
     url,
     meta: {
-      id: String(s?.id ?? s?._id ?? id),
+      // TrackPlayer id should be stable; use _id primarily
+      id: String(s?._id ?? s?.id ?? id),
       title: s?.title ?? s?.name ?? "Untitled",
-      artist: s?.author ?? s?.artist ?? "Unknown Artist",
-      artwork: s?.artworkUrl ?? s?.image ?? s?.trackImg,
+      artist:
+        s?.author ??
+        s?.artist ??
+        (Array.isArray(s?.artists) ? s.artists.join(", ") : "Unknown Artist"),
+      artwork: s?.trackImg ?? s?.artworkUrl ?? s?.image,
     },
   };
 }
 
-export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const initializedRef = useRef(false);
 
   const ensureInitialized = useCallback(async () => {
     if (initializedRef.current) return;
-    await initTrackPlayer(); // must be idempotent
+    await initTrackPlayer();
     initializedRef.current = true;
   }, []);
 
-  const playById = useCallback(async (id: string) => {
-    try {
-      await ensureInitialized();
-      const { url, meta } = await fetchSongById(id);
-      await simplePlayUrl(url, meta);
-    } catch (e) {
-      console.warn("playById failed:", e);
-    }
-  }, [ensureInitialized]);
+  const playById = useCallback(
+    async (id: string) => {
+      try {
+        await ensureInitialized();
+
+        // ✅ Only allow _id usage going forward (avoid TRK-* causing backend cast errors)
+        if (!isMongoObjectId(id)) {
+          throw new Error(
+            `playById expects Mongo _id (24 hex chars). Got: ${String(id)}`
+          );
+        }
+
+        const { url, meta } = await fetchSongByMongoId(id);
+        await simplePlayUrl(url, meta);
+      } catch (e) {
+        console.warn("playById failed:", e);
+      }
+    },
+    [ensureInitialized]
+  );
 
   const playPauseToggle = useCallback(async () => {
     try {
       await ensureInitialized();
       const state = await TrackPlayer.getState();
-      if (state === State.Playing) {
-        await TrackPlayer.pause();
-      } else {
-        // If nothing is queued, this will no-op; caller should call playById first.
-        await TrackPlayer.play();
-      }
+      if (state === State.Playing) await TrackPlayer.pause();
+      else await TrackPlayer.play();
     } catch (e) {
       console.warn("playPauseToggle failed:", e);
     }
@@ -69,7 +120,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await TrackPlayer.skipToNext();
       await TrackPlayer.play();
     } catch (e) {
-      // no next track or not queued
       console.warn("next failed:", e);
     }
   }, [ensureInitialized]);

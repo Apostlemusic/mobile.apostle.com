@@ -1,23 +1,33 @@
-import React from "react";
-import { View, Text, ScrollView, ImageBackground, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  ImageBackground,
+  TouchableOpacity,
+} from "react-native";
 import tw from "twrnc";
-// Remove local AudioContext; use global PlayerContext
 import { usePlayer } from "../player/PlayerContext";
-import { useFetchSongs, GlobalTrack, normalizeArray, pickPlayableUrl } from "../../hooks/useFetchSongs";
 import { useRouter } from "expo-router";
 
-const classifyEndpoint = (endpoint: string) => {
-  const lower = endpoint.toLowerCase();
-  if (lower.includes("/song/")) return "song";
-  if (lower.includes("/category/")) return "category";
-  if (lower.includes("/playlist/")) return "playlist";
-  if (lower.includes("/artist/")) return "artist";
-  return "unknown";
-};
+// ✅ Use the new API wrapper (no UI changes)
+import {
+  getAllSongs,
+  getCategories,
+  getGenres,
+  getLikedSongs,
+  unwrapArray,
+} from "@/services/content";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SkeletonRow = ({ count = 5 }: { count?: number }) => {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mt-3 pl-4`}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={tw`mt-3 pl-4`}
+    >
       {Array.from({ length: count }).map((_, i) => (
         <View
           key={`sk-${i}`}
@@ -33,20 +43,21 @@ const SkeletonRow = ({ count = 5 }: { count?: number }) => {
   );
 };
 
+type AnyItem = any;
+
 const UnifiedSection = ({
   title,
-  endpoint,
+  kind,
   data,
   loading,
 }: {
   title: string;
-  endpoint: string;
-  data: GlobalTrack[];
+  kind: "song" | "category" | "genre";
+  data: AnyItem[];
   loading?: boolean;
 }) => {
   const router = useRouter();
   const { playById } = usePlayer();
-  const kind = classifyEndpoint(endpoint);
   const placeholder = "https://via.placeholder.com/150";
 
   if (loading && (!data || data.length === 0)) {
@@ -59,49 +70,53 @@ const UnifiedSection = ({
       </View>
     );
   }
+
   if (!loading && (!data || data.length === 0)) {
-    return null;
+    return null; // ✅ keep section hidden when empty
   }
 
-  const onPressItem = (t: GlobalTrack) => {
+  const onPressItem = (t: AnyItem) => {
     if (kind === "song") {
-      const id = t.trackId || t.id;
-      if (id) {
-        // Simple global flow: fetch by id -> get trackUrl -> play
-        playById(id);
-      }
+      const id = t._id;
+      if (id) playById(id);
       return;
     }
 
+    // NOTE: You previously routed category/genre into Library with old endpoints.
+    // Keeping the exact same navigation patterns but updating to new API routes
+    // (no UI changes).
     if (kind === "category") {
-      const slug = (t as any).slug || t.title?.toLowerCase().replace(/\s+/g, "");
+      const slug =
+        t.slug ||
+        t.name?.toLowerCase?.().replace(/\s+/g, "") ||
+        t.title?.toLowerCase?.().replace(/\s+/g, "");
       if (!slug) return;
-      const isGenre = endpoint.toLowerCase().includes("getallgenre");
-      const targetApi = isGenre
-        ? `/api/category/getGenre/${slug}`
-        : `/api/category/getCategory/${slug}`;
 
       router.push({
         pathname: "/tabs/Library",
-        params: { sourceApi: targetApi, slug, type: isGenre ? "genre" : "category" },
+        params: {
+          sourceApi: `/api/content/categories/${slug}`,
+          slug,
+          type: "category",
+        },
       });
       return;
     }
 
-    if (kind === "playlist") {
-      const slug = (t as any).slug || t.id;
-      router.push({
-        pathname: "/tabs/Library",
-        params: { sourceApi: `/api/playlist/getPlaylist/${slug}`, slug, type: "playlist" },
-      });
-      return;
-    }
+    if (kind === "genre") {
+      const slug =
+        t.slug ||
+        t.name?.toLowerCase?.().replace(/\s+/g, "") ||
+        t.title?.toLowerCase?.().replace(/\s+/g, "");
+      if (!slug) return;
 
-    if (kind === "artist") {
-      const slug = (t as any).slug || t.id;
       router.push({
         pathname: "/tabs/Library",
-        params: { sourceApi: `/api/artist/getArtist/${slug}`, slug, type: "artist" },
+        params: {
+          sourceApi: `/api/content/genres/${slug}`,
+          slug,
+          type: "genre",
+        },
       });
     }
   };
@@ -111,14 +126,26 @@ const UnifiedSection = ({
       <View style={tw`flex-row justify-between items-center px-4`}>
         <Text style={tw`text-lg font-semibold text-gray-900`}>{title}</Text>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mt-3 pl-4`}>
-        {data.map((t) => {
-          const img = t.artworkUrl || t.trackImg || t.image || placeholder;
-          // Only disable if item has neither id nor trackId
-          const isDisabled = !(t.trackId || t.id);
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={tw`mt-3 pl-4`}
+      >
+        {data.map((t: AnyItem, idx: number) => {
+          const key = String(t.trackId || t._id || t.id || t.slug || idx);
+          const img =
+            t.artworkUrl ||
+            t.trackImg ||
+            t.image ||
+            t.coverUrl ||
+            t.thumbnailUrl ||
+            placeholder;
+
+          const isDisabled = kind === "song" ? !(t.trackId || t._id || t.id) : false;
+
           return (
             <TouchableOpacity
-              key={(t.trackId || t.id) as string}
+              key={key}
               style={[tw`mr-4`, { width: 150, height: 200 }]}
               onPress={() => onPressItem(t)}
               disabled={isDisabled}
@@ -132,12 +159,21 @@ const UnifiedSection = ({
                   backgroundColor: "#e0e0e0",
                 }}
               >
-                <Text style={tw`text-white text-[16px] font-extrabold text-left w-2/3`} numberOfLines={2}>
-                  {t.title}
+                <Text
+                  style={tw`text-white text-[16px] font-extrabold text-left w-2/3`}
+                  numberOfLines={2}
+                >
+                  {t.title ?? t.name ?? " "}
                 </Text>
                 <View style={tw`w-full flex-row justify-between items-end mt-2`}>
-                  <Text style={tw`text-white text-sm font-extrabold text-right w-2/3`} numberOfLines={1}>
-                    {t.author || t.artist || ((t as any).slug ? `#${(t as any).slug}` : "")}
+                  <Text
+                    style={tw`text-white text-sm font-extrabold text-right w-2/3`}
+                    numberOfLines={1}
+                  >
+                    {t.author ||
+                      t.artist ||
+                      (t.slug ? `#${t.slug}` : "") ||
+                      " "}
                   </Text>
                 </View>
               </ImageBackground>
@@ -150,41 +186,126 @@ const UnifiedSection = ({
 };
 
 export default function MoreForYou() {
-  const endpoints = {
-    recommended: "https://apostle.onrender.com/api/song/getRecommended",
-    liked: "https://apostle.onrender.com/api/song/getLikedSongs",
-    allSongs: "https://apostle.onrender.com/api/song/getAllSongs",
-    categories: "https://apostle.onrender.com/api/category/getAllCategory",
-    genres: "https://apostle.onrender.com/api/category/getAllGenre",
-  };
+  // Loading states (keep skeleton behavior)
+  const [recommendedLoading, setRecommendedLoading] = useState(true);
+  const [likedLoading, setLikedLoading] = useState(true);
+  const [allSongsLoading, setAllSongsLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [genresLoading, setGenresLoading] = useState(true);
 
-  const { songs: recommendedRaw, loading: recommendedLoading, error: recommendedError } = useFetchSongs(endpoints.recommended);
-  const { songs: likedRaw, loading: likedLoading, error: likedError } = useFetchSongs(endpoints.liked);
-  const { songs: allSongsRaw, loading: allSongsLoading, error: allSongsError } = useFetchSongs(endpoints.allSongs);
-  const { songs: categoriesRaw, loading: categoriesLoading, error: categoriesError } = useFetchSongs(endpoints.categories);
-  const { songs: genresRaw, loading: genresLoading, error: genresError } = useFetchSongs(endpoints.genres);
+  // Data
+  const [recommended, setRecommended] = useState<AnyItem[]>([]);
+  const [liked, setLiked] = useState<AnyItem[]>([]);
+  const [allSongs, setAllSongs] = useState<AnyItem[]>([]);
+  const [categories, setCategories] = useState<AnyItem[]>([]);
+  const [genres, setGenres] = useState<AnyItem[]>([]);
 
-  const recommended = normalizeArray(recommendedRaw);
-  const liked = normalizeArray(likedRaw);
-  const allSongs = normalizeArray(allSongsRaw);
-  const categories = normalizeArray(categoriesRaw);
-  const genres = normalizeArray(genresRaw);
+  const getUserId = async () =>
+    (await AsyncStorage.getItem("userId")) ||
+    (await AsyncStorage.getItem("apostle.userId"));
 
-  const renderSection = (
-    title: string,
-    endpoint: string,
-    data: GlobalTrack[],
-    loading?: boolean,
-    error?: string | null
-  ) => {
-    if (error) return null;
-    const hasData = Array.isArray(data) && data.length > 0;
-    if (!loading && !hasData) return null;
-    return <UnifiedSection title={title} endpoint={endpoint} data={data} loading={loading} />;
-  };
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      // 1) Recommended For You
+      // NOTE: content.ts currently has no "recommended" endpoint.
+      // Minimal safe behavior: use all songs as a stand-in (first N).
+      // If you add /api/content/songs/recommended later, I’ll swap it here.
+      try {
+        setRecommendedLoading(true);
+        const data = await getAllSongs();
+        const items = unwrapArray(data);
+        if (mounted) setRecommended(items.slice(0, 12));
+      } catch (e) {
+        console.error("Recommended fetch failed:", e);
+        if (mounted) setRecommended([]);
+      } finally {
+        if (mounted) setRecommendedLoading(false);
+      }
+
+      // 2) Liked Songs (requires userId)
+      try {
+        setLikedLoading(true);
+        const userId = await getUserId();
+        if (!userId) {
+          if (mounted) setLiked([]);
+        } else {
+          const data = await getLikedSongs(userId);
+          const items = unwrapArray(data);
+          if (mounted) setLiked(items);
+        }
+      } catch (e) {
+        console.error("Liked fetch failed:", e);
+        if (mounted) setLiked([]);
+      } finally {
+        if (mounted) setLikedLoading(false);
+      }
+
+      // 3) All Songs
+      try {
+        setAllSongsLoading(true);
+        const data = await getAllSongs();
+        const items = unwrapArray(data);
+        if (mounted) setAllSongs(items);
+      } catch (e) {
+        console.error("All songs fetch failed:", e);
+        if (mounted) setAllSongs([]);
+      } finally {
+        if (mounted) setAllSongsLoading(false);
+      }
+
+      // 4) Categories
+      try {
+        setCategoriesLoading(true);
+        const data = await getCategories();
+        const items = unwrapArray(data);
+        if (mounted) setCategories(items);
+      } catch (e) {
+        console.error("Categories fetch failed:", e);
+        if (mounted) setCategories([]);
+      } finally {
+        if (mounted) setCategoriesLoading(false);
+      }
+
+      // 5) Genres
+      try {
+        setGenresLoading(true);
+        const data = await getGenres();
+        const items = unwrapArray(data);
+        if (mounted) setGenres(items);
+      } catch (e) {
+        console.error("Genres fetch failed:", e);
+        if (mounted) setGenres([]);
+      } finally {
+        if (mounted) setGenresLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const renderSection = useMemo(() => {
+    return (
+      title: string,
+      kind: "song" | "category" | "genre",
+      data: AnyItem[],
+      loading?: boolean
+    ) => {
+      const hasData = Array.isArray(data) && data.length > 0;
+      if (!loading && !hasData) return null; // ✅ hide when empty
+      return <UnifiedSection title={title} kind={kind} data={data} loading={loading} />;
+    };
+  }, []);
 
   return (
-    <ScrollView style={tw`flex-1 bg-white`} showsVerticalScrollIndicator={false} overScrollMode="never">
+    <ScrollView
+      style={tw`flex-1 bg-white`}
+      showsVerticalScrollIndicator={false}
+      overScrollMode="never"
+    >
       <View style={tw`px-4 mt-8`}>
         <Text style={tw`text-2xl font-bold text-gray-900`}>More For YOU</Text>
         <Text style={tw`text-gray-500 mt-1`}>
@@ -192,11 +313,11 @@ export default function MoreForYou() {
         </Text>
       </View>
 
-      {renderSection("Recommended For You", endpoints.recommended, recommended, recommendedLoading, recommendedError)}
-      {renderSection("Liked Songs", endpoints.liked, liked, likedLoading, likedError)}
-      {renderSection("All Songs", endpoints.allSongs, allSongs, allSongsLoading, allSongsError)}
-      {renderSection("Categories", endpoints.categories, categories, categoriesLoading, categoriesError)}
-      {renderSection("Genres", endpoints.genres, genres, genresLoading, genresError)}
+      {renderSection("Recommended For You", "song", recommended, recommendedLoading)}
+      {renderSection("Liked Songs", "song", liked, likedLoading)}
+      {renderSection("All Songs", "song", allSongs, allSongsLoading)}
+      {renderSection("Categories", "category", categories, categoriesLoading)}
+      {renderSection("Genres", "genre", genres, genresLoading)}
 
       <View style={tw`h-8`} />
     </ScrollView>

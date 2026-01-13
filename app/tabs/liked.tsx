@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -9,10 +10,11 @@ import {
   RefreshControl,
 } from "react-native";
 import tw from "twrnc";
-import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
 import { usePlayer } from "@/components/player/PlayerContext";
+import { getLikedSongs, onLikedUpdated } from "@/services/content";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 const LikedSongsScreen: React.FC = () => {
   const router = useRouter();
@@ -21,19 +23,24 @@ const LikedSongsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { playById } = usePlayer();
 
-  const parsePayload = (data: any) => {
-    const payload = Array.isArray(data) ? data[0] : data;
-    return Array.isArray(payload?.songs) ? payload.songs : [];
-  };
-
   const fetchLiked = async () => {
     try {
       if (!refreshing) setLoading(true);
-      const res = await axios.get(
-        "https://apostle.onrender.com/api/song/getLikedSongs",
-        { withCredentials: true }
-      );
-      setLikedSongs(parsePayload(res.data));
+
+      // Expect you store userId somewhere; this is the least invasive fallback.
+      const userId =
+        (await AsyncStorage.getItem("userId")) ||
+        (await AsyncStorage.getItem("apostle.userId"));
+
+      if (!userId) {
+        setLikedSongs([]);
+        return;
+      }
+
+      const data = await getLikedSongs(userId);
+      // Postman-style likely { songs: [...] }
+      const songs = Array.isArray(data?.songs) ? data.songs : Array.isArray(data?.data) ? data.data : [];
+      setLikedSongs(songs);
     } catch (e) {
       console.error("Error fetching liked songs:", e);
       setLikedSongs([]);
@@ -45,6 +52,12 @@ const LikedSongsScreen: React.FC = () => {
 
   useEffect(() => {
     fetchLiked();
+    const unsub = onLikedUpdated(() => {
+      fetchLiked();
+    });
+    return () => {
+      if (typeof unsub === "function") void unsub();
+    };
   }, []);
 
   useFocusEffect(
@@ -58,11 +71,12 @@ const LikedSongsScreen: React.FC = () => {
     await fetchLiked();
   };
 
+  // ✅ IMPORTANT: playById now expects Mongo _id (not trackId)
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={() => {
-        const id = item.trackId ?? item._id;
+        const id = item._id;
         if (id) playById(id);
       }}
     >

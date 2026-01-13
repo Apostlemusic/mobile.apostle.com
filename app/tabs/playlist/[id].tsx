@@ -1,18 +1,31 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import axios from "axios";
 import { Swipeable } from "react-native-gesture-handler";
 import { useAudio } from "@/contexts/AudioContext";
 import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
-import { usePlayer } from "@/components/player/PlayerContext"; // added
+import { getPlaylistById, getSongById, removeTrackFromPlaylist } from "@/services/content";
+import { usePlayer } from "@/components/player/PlayerContext";
 
 // Lightweight event bus to notify playlist changes across the app
 const playlistEvents = {
   listeners: new Set<() => void>(),
-  emit() { this.listeners.forEach(fn => fn()); },
-  subscribe(fn: () => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
+  emit() {
+    this.listeners.forEach((fn) => fn());
+  },
+  subscribe(fn: () => void) {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  },
 };
 export const emitPlaylistUpdated = () => playlistEvents.emit();
 
@@ -22,23 +35,54 @@ const PlaylistView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [playlist, setPlaylist] = useState<any | null>(null);
+
+  // ✅ hydrate tracksId -> tracks[]
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(false);
+
   const { addToQueue } = useAudio();
-  const { playById } = usePlayer(); // added
+  const { playById } = usePlayer();
 
   const fetchPlaylist = async () => {
     if (!id) return;
     try {
       if (!refreshing) setIsLoading(true);
-      const res = await axios.get(`https://apostle.onrender.com/api/playlist/getUserPlayList/${id}`, {
-        withCredentials: true,
-      });
-      setPlaylist(res.data?.data ?? null);
+
+      const data = await getPlaylistById(id);
+      const p = data?.playlist ?? null; // normalized in service
+      setPlaylist(p);
+
+      // ✅ If API returns only tracksId, fetch song details for each id
+      const ids: string[] = Array.isArray(p?.tracksId) ? p.tracksId : [];
+      if (ids.length === 0) {
+        setTracks([]);
+        return;
+      }
+
+      setTracksLoading(true);
+
+      // Fetch in parallel; tolerate per-item failures
+      const results = await Promise.allSettled(
+        ids.map(async (songId) => {
+          const songRes = await getSongById(songId);
+          return songRes?.song ?? songRes?.data ?? songRes;
+        })
+      );
+
+      const hydrated = results
+        .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled")
+        .map((r) => r.value)
+        .filter(Boolean);
+
+      setTracks(hydrated);
     } catch (e) {
       console.error("Error fetching playlist:", e);
       setPlaylist(null);
+      setTracks([]);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
+      setTracksLoading(false);
     }
   };
 
@@ -46,11 +90,8 @@ const PlaylistView: React.FC = () => {
   const removeTrack = async (trackId: string) => {
     if (!id || !trackId) return;
     try {
-      await axios.post(
-        "https://apostle.onrender.com/api/playlist/removeTrackFromPlayList",
-        { _id: id, trackId },
-        { withCredentials: true }
-      );
+      // ✅ you said you use Mongo _id now, so prefer _id
+      await removeTrackFromPlaylist({ playlistId: id, trackId });
       emitPlaylistUpdated();
       await fetchPlaylist();
     } catch (e: any) {
@@ -75,6 +116,13 @@ const PlaylistView: React.FC = () => {
     await fetchPlaylist();
   };
 
+  const listData = useMemo(() => {
+    // Prefer hydrated tracks; fallback to API-provided playlist.tracks if you ever add it
+    if (tracks.length > 0) return tracks;
+    if (Array.isArray(playlist?.tracks) && playlist.tracks.length > 0) return playlist.tracks;
+    return [];
+  }, [tracks, playlist]);
+
   const renderTrack = ({ item }: { item: any }) => (
     <Swipeable
       renderLeftActions={() => (
@@ -88,7 +136,9 @@ const PlaylistView: React.FC = () => {
           >
             <View style={tw`flex-row items-center`}>
               <Ionicons name="add-circle" size={18} color="#2e77ff" />
-              <Text style={[tw`ml-2 text-blue-600`, { fontWeight: "700" }]}>Add to Queue</Text>
+              <Text style={[tw`ml-2 text-blue-600`, { fontWeight: "700" }]}>
+                Add to Queue
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -96,7 +146,7 @@ const PlaylistView: React.FC = () => {
       renderRightActions={() => (
         <View style={[tw`flex-row`, { alignItems: "center" }]}>
           <TouchableOpacity
-            onPress={() => removeTrack(item.trackId ?? item._id)}
+            onPress={() => removeTrack(item._id)}
             style={[
               tw`px-4 py-3 rounded-xl ml-2`,
               { backgroundColor: "#fbe9e7", borderWidth: 1, borderColor: "#f5c6c2" },
@@ -104,7 +154,9 @@ const PlaylistView: React.FC = () => {
           >
             <View style={tw`flex-row items-center`}>
               <Ionicons name="remove-circle" size={18} color="#d32f2f" />
-              <Text style={[tw`ml-2 text-red-700`, { fontWeight: "700" }]}>Remove</Text>
+              <Text style={[tw`ml-2 text-red-700`, { fontWeight: "700" }]}>
+                Remove
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -116,17 +168,24 @@ const PlaylistView: React.FC = () => {
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() => {
-          const trackId = item.trackId ?? item._id; // normalize id
-          if (trackId) playById(trackId);
+          // ✅ playById expects Mongo _id now
+          const songId = item._id;
+          if (songId) playById(songId);
         }}
       >
         <View
           style={[
             tw`flex-row items-center p-3 mb-2 rounded-2xl`,
-            { backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#eaeaea" },
+            {
+              backgroundColor: "#ffffff",
+              borderWidth: 1,
+              borderColor: "#eaeaea",
+            },
           ]}
         >
-          <View style={[tw`w-14 h-14 rounded-xl mr-3`, { overflow: "hidden", backgroundColor: "#f1f1f1" }]}>
+          <View
+            style={[tw`w-14 h-14 rounded-xl mr-3`, { overflow: "hidden", backgroundColor: "#f1f1f1" }]}
+          >
             {item.trackImg ? (
               <Image source={{ uri: item.trackImg }} style={tw`w-full h-full`} resizeMode="cover" />
             ) : (
@@ -136,10 +195,16 @@ const PlaylistView: React.FC = () => {
             )}
           </View>
           <View style={tw`flex-1`}>
-            <Text style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]} numberOfLines={1}>
+            <Text
+              style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]}
+              numberOfLines={1}
+            >
               {item.title}
             </Text>
-            <Text style={[tw`text-gray-500`, { fontSize: 12 }]} numberOfLines={1}>
+            <Text
+              style={[tw`text-gray-500`, { fontSize: 12 }]}
+              numberOfLines={1}
+            >
               {item.author}
             </Text>
           </View>
@@ -150,7 +215,9 @@ const PlaylistView: React.FC = () => {
 
   if (isLoading && !playlist) {
     return (
-      <View style={[tw`flex-1 items-center justify-center`, { backgroundColor: "#fafafa" }]}>
+      <View
+        style={[tw`flex-1 items-center justify-center`, { backgroundColor: "#fafafa" }]}
+      >
         <ActivityIndicator />
       </View>
     );
@@ -158,8 +225,12 @@ const PlaylistView: React.FC = () => {
 
   if (!playlist) {
     return (
-      <View style={[tw`flex-1 items-center justify-center`, { backgroundColor: "#fafafa" }]}>
-        <Text style={[tw`text-gray-500`, { fontSize: 14 }]}>Playlist not found</Text>
+      <View
+        style={[tw`flex-1 items-center justify-center`, { backgroundColor: "#fafafa" }]}
+      >
+        <Text style={[tw`text-gray-500`, { fontSize: 14 }]}>
+          Playlist not found
+        </Text>
       </View>
     );
   }
@@ -171,11 +242,17 @@ const PlaylistView: React.FC = () => {
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={[tw`w-9 h-9 rounded-xl items-center justify-center mr-2`, { backgroundColor: "#f1f3f5" }]}
+            style={[
+              tw`w-9 h-9 rounded-xl items-center justify-center mr-2`,
+              { backgroundColor: "#f1f3f5" },
+            ]}
           >
             <Ionicons name="chevron-back" size={18} color="#000" />
           </TouchableOpacity>
-          <Text style={[tw`text-black`, { fontSize: 20, fontWeight: "800" }]} numberOfLines={1}>
+          <Text
+            style={[tw`text-black`, { fontSize: 20, fontWeight: "800" }]}
+            numberOfLines={1}
+          >
             {playlist?.name ?? "Playlist"}
           </Text>
         </View>
@@ -183,17 +260,34 @@ const PlaylistView: React.FC = () => {
           onPress={fetchPlaylist}
           style={[tw`px-3 py-2 rounded-xl`, { backgroundColor: "#eef2ff" }]}
         >
-          <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>Refresh</Text>
+          <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>
+            Refresh
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Tracks */}
       <FlatList
-        data={playlist?.tracks ?? []}
-        keyExtractor={(item: any, idx: number) => item._id?.toString?.() ?? `${item.trackId}-${idx}`}
+        data={listData}
+        keyExtractor={(item: any, idx: number) => item._id?.toString?.() ?? `${idx}`}
         renderItem={renderTrack}
         contentContainerStyle={tw`px-4 pb-20`}
-        ListEmptyComponent={<View style={tw`items-center mt-10`}><Text style={[tw`text-gray-500`, { fontSize: 14 }]}>No tracks in this playlist</Text></View>}
+        ListEmptyComponent={
+          <View style={tw`items-center mt-10`}>
+            {tracksLoading ? (
+              <>
+                <ActivityIndicator />
+                <Text style={[tw`text-gray-500 mt-3`, { fontSize: 14 }]}>
+                  Loading tracks…
+                </Text>
+              </>
+            ) : (
+              <Text style={[tw`text-gray-500`, { fontSize: 14 }]}>
+                No tracks in this playlist
+              </Text>
+            )}
+          </View>
+        }
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />

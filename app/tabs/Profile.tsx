@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Switch } from "react-native";
 import Slider from "@react-native-community/slider";
 import tw from "twrnc";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { logout } from "@/services/auth";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -16,21 +15,13 @@ export default function SettingsScreen() {
 
   const qualityOptions = ["Automatic", "Very High", "High", "Low"];
 
-  // -----------------------------
-  // 🔐 Handle Logout Function
-  // -----------------------------
   const handleLogout = async () => {
     try {
-      const res = await axios.post("https://apostle.onrender.com/api/auth/logout");
-      console.log("Logout response:", res.data);
-
-      // Clear stored tokens/user data
-      await AsyncStorage.clear();
-
-      // Navigate to login screen (adjust route as needed)
+      await logout();
       router.push("/Auth/Signin");
     } catch (error) {
       console.log("Error during logout:", error);
+      router.push("/Auth/Signin");
     }
   };
 

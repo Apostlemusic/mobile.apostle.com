@@ -16,7 +16,9 @@ export default function ArtistPage() {
   const artistId = Array.isArray(id) ? id[0] : (id || '');
 
   // Fetch all songs then filter locally for now (until dedicated endpoint exists)
-  const { songs, loading, error } = useFetchSongs('https://apostle.onrender.com/api/song/getAllSongs');
+  const { songs, loading, error } = useFetchSongs(
+    `${process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:10000"}/api/content/songs`
+  );
   const { playById } = usePlayer(); // changed
 
   const artistSongs = useMemo(() => {

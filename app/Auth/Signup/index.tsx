@@ -1,85 +1,80 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import tw from "twrnc";
-import { Ionicons } from "@expo/vector-icons";
+import { register } from "@/services/auth";
 import Input from "@/components/reusable/Input";
-import ArrowButton from "@/components/reusable/Button";
-import axios from "axios";
-import { router } from "expo-router";
 
-const SignUp = () => {
+export default function Signup() {
+  const router = useRouter();
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSignUp = async () => {
+  const onSubmit = async () => {
     if (!name || !email || !password) {
-      Alert.alert("Validation Error", "Please fill in all fields.");
+      Alert.alert("Sign up", "Please fill name, email and password.");
       return;
     }
-
-    setLoading(true);
+    setSubmitting(true);
     try {
-      const response = await axios.post(
-        "https://apostle.onrender.com/api/auth/register",
-        {
-          name,
-          email,
-          password,
-        }
-      );
-
-      Alert.alert("Success", "Account created successfully!");
+      await register({ name, phoneNumber, email, password });
+      Alert.alert("Sign up", "Account created. Please verify your OTP.");
       router.push("/Auth/Verify");
-    } catch (error: any) {
-      Alert.alert(
-        "Sign Up Failed",
-        error.response?.data?.data ||
-        "Something went wrong. Please try again."
-      );
+    } catch (e: any) {
+      Alert.alert("Sign up failed", e?.response?.data?.message ?? "Try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <View style={tw`flex-1 bg-white p-4 pt-[20%]`}>
-      {/* Create Account Header */}
-      <Text style={tw`text-6xl leading-normal text-[#373737] font-bold mb-6`}>Create Account</Text>
+    <SafeAreaView style={tw`flex-1 bg-white`}>
+      <View style={tw`flex-1 bg-white p-4 pt-[20%]`}>
+        {/* Create Account Header */}
+        <Text style={tw`text-6xl leading-normal text-[#373737] font-bold mb-6`}>
+          Create Account
+        </Text>
 
-      {/* Input Fields */}
-      <Input label="Name" value={name} onChangeText={(text) => setName(text)} />
-      <Input
-        label="Email"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-      />
-      <Input
-        label="Password"
-        secureTextEntry={true}
-        value={password}
-        onChangeText={(text) => setPassword(text)}
-      />
+        {/* Input Fields */}
+        <Input label="Name" value={name} onChangeText={setName} />
+        <Input label="Email" value={email} onChangeText={setEmail} />
+        <Input
+          label="Password"
+          secureTextEntry={true}
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      {/* Sign Up Button */}
-      <TouchableOpacity
-        style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${loading ? "bg-gray-500" : "bg-[#264252]"}`}
-        onPress={handleSignUp}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
-        ) : (
-          <Text style={tw`text-white text-lg`}>Sign Up</Text>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${
+            submitting ? "bg-gray-500" : "bg-[#264252]"
+          }`}
+          onPress={onSubmit}
+          disabled={submitting}
+        >
+          {submitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={tw`text-white text-lg`}>Sign Up</Text>
+          )}
+        </TouchableOpacity>
 
-      {/* Navigate to SignIn */}
-      <Pressable onPress={() => router.push("/Auth/Signin")}>
-        <Text style={tw`text-[#000000] underline mt-4`}>Sign In</Text>
-      </Pressable>
-    </View>
+        {/* Navigate to SignIn */}
+        <Pressable onPress={() => router.push("/Auth/Signin")}>
+          <Text style={tw`text-[#000000] underline mt-4`}>Sign In</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
   );
-};
-
-export default SignUp;
+}

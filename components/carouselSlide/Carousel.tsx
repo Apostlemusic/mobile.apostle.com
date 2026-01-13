@@ -14,7 +14,12 @@ import tw from "twrnc";
 // Use the centralized player
 import { usePlayer } from "../player/PlayerContext";
 // Use local hook with correct relative path
-import { useFetchSongs, normalizeArray, pickPlayableUrl, GlobalTrack } from "../../hooks/useFetchSongs";
+import {
+  useFetchSongs,
+  normalizeArray,
+  pickPlayableUrl,
+  GlobalTrack,
+} from "../../hooks/useFetchSongs";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -105,22 +110,16 @@ const MusicHome = () => {
     error: recentError,
   } = useFetchSongs(recentEndpoint);
 
-  // Do not filter by kind here (some normalizers or hooks may not set it);
-  // just normalize and rely on playable id detection.
   const recent: GlobalTrack[] = normalizeArray(recentRaw);
 
   const onPressPlay = (t: GlobalTrack) => {
-    // Prefer centralized play-by-trackId flow
     const id = t.trackId || t.id;
     if (id) {
       playById(id);
       return;
     }
-
-    // Fallback: if no id, try direct URL play (rare)
     const url = pickPlayableUrl(t);
     if (!url) return;
-    // If you still want to use the old direct audio play, wire it here
     playById(id ?? ""); // will no-op without id
   };
 
@@ -131,61 +130,67 @@ const MusicHome = () => {
   return (
     <View style={tw`flex-1 justify-center`}>
       {/* Jump Back In */}
-      <View
-        style={tw`px-4 ${Platform.OS === "ios" ? "mt-0" : "mt-10"} flex items-center justify-center bg-[#2C3E50] rounded-b-[85px] relative h-[330px]`}
-      >
-        <Text style={tw`text-xl font-extrabold text-white rounded-xl px-3 mt-3 w-full`}>Jump Back In</Text>
+      {hasItems || showJumpSkeleton ? (
+        <View
+          style={tw`px-4 ${Platform.OS === "ios" ? "mt-0" : "mt-10"} flex items-center justify-center bg-[#2C3E50] rounded-b-[85px] relative h-[330px]`}
+        >
+          <Text style={tw`text-xl font-extrabold text-white rounded-xl px-3 mt-3 w-full`}>
+            Jump Back In
+          </Text>
 
-        {showJumpSkeleton ? (
-          <View style={tw`w-full items-center -mb-16`}>
-            <SkeletonCard />
-          </View>
-        ) : !recentError && hasItems ? (
-          <Carousel
-            data={recent}
-            renderItem={({ item }) => (
-              <TouchableOpacity activeOpacity={0.8} onPress={() => onPressPlay(item)}>
-                {renderCarouselItem({ item })}
-              </TouchableOpacity>
-            )}
-            width={screenWidth}
-            height={370}
-            loop
-            autoPlay
-            autoPlayInterval={5000}
-            style={tw`-mb-16`}
-          />
-        ) : null}
-      </View>
+          {showJumpSkeleton ? (
+            <View style={tw`w-full items-center -mb-16`}>
+              <SkeletonCard />
+            </View>
+          ) : !recentError && hasItems ? (
+            <Carousel
+              data={recent}
+              renderItem={({ item }) => (
+                <TouchableOpacity activeOpacity={0.8} onPress={() => onPressPlay(item)}>
+                  {renderCarouselItem({ item })}
+                </TouchableOpacity>
+              )}
+              width={screenWidth}
+              height={370}
+              loop
+              autoPlay
+              autoPlayInterval={5000}
+              style={tw`-mb-16`}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       {/* New Releases */}
-      <View style={tw`px-4 mt-24`}>
-        <Text style={tw`text-lg font-bold mb-3`}>New Releases For YOU</Text>
+      {hasItems || showNewSkeleton ? (
+        <View style={tw`px-4 mt-24`}>
+          <Text style={tw`text-lg font-bold mb-3`}>New Releases For YOU</Text>
 
-        {showNewSkeleton ? (
-          <FlatList
-            horizontal
-            data={[...Array(4)].map((_, i) => ({ id: `sk-${i}` }))}
-            renderItem={() => (
-              <SkeletonCard width={300} height={100} roundedBL={16} roundedTR={16} />
-            )}
-            keyExtractor={(item) => item.id}
-            showsHorizontalScrollIndicator={false}
-          />
-        ) : !recentError && hasItems ? (
-          <FlatList
-            horizontal
-            data={recent}
-            renderItem={({ item }) => (
-              <TouchableOpacity activeOpacity={0.8} onPress={() => onPressPlay(item)}>
-                {renderNewRelease({ item })}
-              </TouchableOpacity>
-            )}
-            keyExtractor={(item, index) => (item.trackId || item.id || `${index}`)}
-            showsHorizontalScrollIndicator={false}
-          />
-        ) : null}
-      </View>
+          {showNewSkeleton ? (
+            <FlatList
+              horizontal
+              data={[...Array(4)].map((_, i) => ({ id: `sk-${i}` }))}
+              renderItem={() => (
+                <SkeletonCard width={300} height={100} roundedBL={16} roundedTR={16} />
+              )}
+              keyExtractor={(item) => item.id}
+              showsHorizontalScrollIndicator={false}
+            />
+          ) : !recentError && hasItems ? (
+            <FlatList
+              horizontal
+              data={recent}
+              renderItem={({ item }) => (
+                <TouchableOpacity activeOpacity={0.8} onPress={() => onPressPlay(item)}>
+                  {renderNewRelease({ item })}
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item, index) => (item.trackId || item.id || `${index}`)}
+              showsHorizontalScrollIndicator={false}
+            />
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 };

@@ -113,7 +113,7 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({
         return;
       }
 
-      const data = await getLikedSongs(userId);
+      const data = await getLikedSongs();
       const songs: any[] = Array.isArray(data?.songs)
         ? data.songs
         : Array.isArray(data?.data)
@@ -191,12 +191,12 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({
       onRequestClose={onClose}
     >
       <TouchableOpacity
-        style={tw`flex-1 bg-black/40`}
+        style={tw`flex-1 bg-black/40 dark:bg-black/60`}
         activeOpacity={1}
         onPress={onClose}
       >
-        <View style={tw`absolute bottom-0 left-0 right-0 bg-white p-6 rounded-t-3xl`}>
-          <Text style={tw`text-base font-bold mb-4`}>More Options</Text>
+        <View style={tw`absolute bottom-0 left-0 right-0 bg-white dark:bg-[#14141b] p-6 rounded-t-3xl`}>
+          <Text style={tw`text-base font-bold mb-4 text-black dark:text-gray-100`}>More Options</Text>
 
           <View style={tw`flex-row flex-wrap justify-between`}>
             <Option
@@ -212,7 +212,7 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({
             <TouchableOpacity
               onPress={toggleLike}
               disabled={isLikeDisabled}
-              style={tw`w-[47%] ${isLikeDisabled ? "opacity-60" : ""} bg-gray-100 p-4 rounded-xl flex-row items-center mb-3`}
+              style={tw`w-[47%] ${isLikeDisabled ? "opacity-60" : ""} bg-gray-100 dark:bg-[#23232b] p-4 rounded-xl flex-row items-center mb-3`}
             >
               {loadingLikeState || liking ? (
                 <ActivityIndicator size="small" />
@@ -224,7 +224,7 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({
                 />
               )}
 
-              <Text style={tw`ml-2 text-sm font-medium`} numberOfLines={1}>
+              <Text style={tw`ml-2 text-sm font-medium text-black dark:text-gray-100`} numberOfLines={1}>
                 {loadingLikeState
                   ? ""
                   : liking
@@ -276,10 +276,10 @@ interface OptionProps {
 const Option: React.FC<OptionProps> = ({ label, icon, action }) => (
   <TouchableOpacity
     onPress={action}
-    style={tw`w-[47%] bg-gray-100 p-4 rounded-xl flex-row items-center mb-3`}
+    style={tw`w-[47%] bg-gray-100 dark:bg-[#23232b] p-4 rounded-xl flex-row items-center mb-3`}
   >
     {icon}
-    <Text style={tw`ml-2 text-sm font-medium`} numberOfLines={1}>
+    <Text style={tw`ml-2 text-sm font-medium text-black dark:text-gray-100`} numberOfLines={1}>
       {label}
     </Text>
   </TouchableOpacity>

@@ -126,22 +126,22 @@ export default function Verify() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
+    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={tw`flex-1`}
       >
-        <View style={tw`flex-1 items-center justify-start bg-white px-4 py-10`}>
+        <View style={tw`flex-1 items-center justify-start bg-white dark:bg-[#0b0b10] px-4 py-10`}>
           {/* Back Button */}
           <TouchableOpacity
             onPress={() => router.back()}
-            style={tw`absolute top-4 left-4 p-2 rounded-full bg-gray-200`}
+            style={tw`absolute top-4 left-4 p-2 rounded-full bg-gray-200 dark:bg-[#23232b]`}
           >
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
 
-          <Text style={tw`text-2xl font-bold mb-4`}>Verify Email</Text>
-          <Text style={tw`text-base mb-8 text-center px-4`}>
+          <Text style={tw`text-2xl font-bold mb-4 text-black dark:text-gray-100`}>Verify Email</Text>
+          <Text style={tw`text-base mb-8 text-center px-4 text-gray-700 dark:text-gray-300`}>
             Enter the 4-digit code sent to your email
           </Text>
 
@@ -154,7 +154,7 @@ export default function Verify() {
                 }}
                 style={tw`border ${
                   value ? "border-blue-500 bg-blue-50" : "border-gray-300"
-                } rounded-full text-center w-14 h-14 text-xl font-bold pb-2 pr-1`}
+                } dark:border-[#2d2d35] dark:bg-[#14141b] rounded-full text-center w-14 h-14 text-xl font-bold pb-2 pr-1 text-black dark:text-gray-100`}
                 keyboardType="numeric"
                 maxLength={1}
                 value={value}
@@ -168,8 +168,8 @@ export default function Verify() {
           <View style={tw`w-full flex items-end mt-6 px-4`}>
             <TouchableOpacity
               style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${
-                submitting ? "bg-gray-500" : "bg-[#264252]"
-              }`}
+                  submitting ? "bg-gray-500 dark:bg-gray-600" : "bg-[#264252]"
+                }`}
               disabled={submitting || otp.some((val) => val === "")}
               onPress={handleVerifyOtp}
             >
@@ -184,7 +184,7 @@ export default function Verify() {
             onPress={handleResendOtp}
             disabled={submitting || !canResend}
           >
-            <Text style={tw`text-center text-black text-base`}>
+            <Text style={tw`text-center text-black dark:text-gray-100 text-base`}>
               {submitting
                 ? "Processing..."
                 : !canResend

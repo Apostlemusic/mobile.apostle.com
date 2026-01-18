@@ -80,7 +80,7 @@ const NavigationBar = () => {
 
   return (
     <View
-      style={tw`absolute bottom-0 left-0 right-0 bg-[#0081C9] p-3 py-5 shadow-lg flex-row justify-between items-center`}
+      style={tw`absolute bottom-0 left-0 right-0 bg-[#0081C9] dark:bg-[#14141b] p-3 py-5 shadow-lg flex-row justify-between items-center`}
     >
       {Links.map((link, index) => (
         <TouchableOpacity

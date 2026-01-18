@@ -44,18 +44,18 @@ export default function Forgotpassword() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
-      <View style={tw`flex-1 bg-white p-4`}>
+    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+      <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] p-4`}>
         {/* Back Button */}
         <TouchableOpacity onPress={() => router.back()} style={tw`my-5`}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
         {/* Forgot Password Header */}
-        <Text style={tw`text-2xl font-bold mb-4 text-center`}>
+        <Text style={tw`text-2xl font-bold mb-4 text-center text-black dark:text-gray-100`}>
           Forgot Password
         </Text>
-        <Text style={tw`text-base mb-8 text-center`}>
+        <Text style={tw`text-base mb-8 text-center text-gray-700 dark:text-gray-300`}>
           Please enter your registered email address to receive a verification
           code.
         </Text>

@@ -39,10 +39,10 @@ export default function Signup() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
-      <View style={tw`flex-1 bg-white p-4 pt-[20%]`}>
+    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+      <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] p-4 pt-[20%]`}>
         {/* Create Account Header */}
-        <Text style={tw`text-6xl leading-normal text-[#373737] font-bold mb-6`}>
+        <Text style={tw`text-6xl leading-normal text-[#373737] dark:text-gray-100 font-bold mb-6`}>
           Create Account
         </Text>
 
@@ -58,7 +58,7 @@ export default function Signup() {
 
         <TouchableOpacity
           style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${
-            submitting ? "bg-gray-500" : "bg-[#264252]"
+            submitting ? "bg-gray-500 dark:bg-gray-600" : "bg-[#264252]"
           }`}
           onPress={onSubmit}
           disabled={submitting}
@@ -72,7 +72,7 @@ export default function Signup() {
 
         {/* Navigate to SignIn */}
         <Pressable onPress={() => router.push("/Auth/Signin")}>
-          <Text style={tw`text-[#000000] underline mt-4`}>Sign In</Text>
+          <Text style={tw`text-[#000000] dark:text-gray-100 underline mt-4`}>Sign In</Text>
         </Pressable>
       </View>
     </SafeAreaView>

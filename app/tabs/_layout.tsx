@@ -28,18 +28,37 @@ const Layout = () => {
   const router = useRouter();
   const pathname = usePathname();
 
+  const activeColor = "#FFFFFF";
+  const inactiveColor = "rgba(255,255,255,0.75)";
+
   const Links = [
-    { path: "/tabs/Home", activeIcon: <HomeActive />, inactiveIcon: <Home /> },
-    { path: "/tabs/Search", activeIcon: <SearchActive />, inactiveIcon: <Search /> },
-    { path: "/tabs/Library", activeIcon: <BurstActive />, inactiveIcon: <Burst /> },
-    { path: "/tabs/Profile", activeIcon: <AccountActive />, inactiveIcon: <Account /> },
+    {
+      path: "/tabs/Home",
+      activeIcon: <HomeActive color={activeColor} />,
+      inactiveIcon: <Home color={inactiveColor} />,
+    },
+    {
+      path: "/tabs/Search",
+      activeIcon: <SearchActive color={activeColor} />,
+      inactiveIcon: <Search color={inactiveColor} />,
+    },
+    {
+      path: "/tabs/Library",
+      activeIcon: <BurstActive color={activeColor} />,
+      inactiveIcon: <Burst color={inactiveColor} />,
+    },
+    {
+      path: "/tabs/Profile",
+      activeIcon: <AccountActive color={activeColor} />,
+      inactiveIcon: <Account color={inactiveColor} />,
+    },
   ];
 
   return (
     <SongProvider>
       <AudioProvider>
         <PlayerProvider>
-          <SafeAreaView style={tw`flex-1 bg-gray-100`}>
+          <SafeAreaView style={tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`}>
             <KeyboardAvoidingView
               behavior={Platform.OS === "android" ? "padding" : "height"}
               style={tw`flex-1`}
@@ -62,7 +81,7 @@ const Layout = () => {
 
           {/* Custom Bottom Navigation */}
           <View
-            style={tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
+            style={tw`absolute bottom-0 left-0 right-0 bg-[#0081C9] dark:bg-[#14141b] px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
           >
             {Links.map((link, index) => {
               const isActive = pathname === link.path;

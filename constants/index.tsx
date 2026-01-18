@@ -1,1 +1,0 @@
-export const baseUrl = "https://apostle.onrender.com/api"

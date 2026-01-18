@@ -13,19 +13,19 @@ import tw from "twrnc";
 
 const MusicPlayerSkeleton = () => {
   return (
-    <View style={tw`flex-1 justify-center items-center bg-gray-100 p-4`}>
-      <View style={tw`w-60 h-60 bg-gray-300 rounded-lg mb-4`} />
-      <View style={tw`w-48 h-6 bg-gray-300 rounded mb-2`} />
-      <View style={tw`w-32 h-5 bg-gray-300 rounded mb-6`} />
+    <View style={tw`flex-1 justify-center items-center bg-gray-100 dark:bg-[#0b0b10] p-4`}>
+      <View style={tw`w-60 h-60 bg-gray-300 dark:bg-[#23232b] rounded-lg mb-4`} />
+      <View style={tw`w-48 h-6 bg-gray-300 dark:bg-[#23232b] rounded mb-2`} />
+      <View style={tw`w-32 h-5 bg-gray-300 dark:bg-[#23232b] rounded mb-6`} />
       <View style={tw`flex-row justify-around w-full px-8`}>
-        <View style={tw`w-10 h-10 bg-gray-300 rounded-full`} />
-        <View style={tw`w-16 h-16 bg-gray-300 rounded-full`} />
-        <View style={tw`w-10 h-10 bg-gray-300 rounded-full`} />
+        <View style={tw`w-10 h-10 bg-gray-300 dark:bg-[#23232b] rounded-full`} />
+        <View style={tw`w-16 h-16 bg-gray-300 dark:bg-[#23232b] rounded-full`} />
+        <View style={tw`w-10 h-10 bg-gray-300 dark:bg-[#23232b] rounded-full`} />
       </View>
-      <View style={tw`w-full h-3 bg-gray-300 rounded mt-6 mb-2`} />
+      <View style={tw`w-full h-3 bg-gray-300 dark:bg-[#23232b] rounded mt-6 mb-2`} />
       <View style={tw`flex-row justify-between w-full px-4`}>
-        <View style={tw`w-12 h-4 bg-gray-300 rounded`} />
-        <View style={tw`w-12 h-4 bg-gray-300 rounded`} />
+        <View style={tw`w-12 h-4 bg-gray-300 dark:bg-[#23232b] rounded`} />
+        <View style={tw`w-12 h-4 bg-gray-300 dark:bg-[#23232b] rounded`} />
       </View>
     </View>
   );
@@ -60,7 +60,7 @@ const SkeletonLoader = () => {
 
   const SkeletonBox = ({ width, height, style }: any) => (
     <Animated.View
-      style={[tw`bg-gray-200 rounded`, { width, height }, shimmerStyle, style]}
+      style={[tw`bg-gray-200 dark:bg-[#23232b] rounded`, { width, height }, shimmerStyle, style]}
     />
   );
 
@@ -74,9 +74,9 @@ const SkeletonLoader = () => {
         <SkeletonBox width={32} height={32} style={tw`rounded-full`} />
       </View>
 
-      <ScrollView style={tw`bg-gray-50 h-full w-full`}>
+      <ScrollView style={tw`bg-gray-50 dark:bg-[#0b0b10] h-full w-full`}>
         {/* Carousel Loader */}
-        <View style={tw`h-48 w-full bg-gray-200 mb-6`} />
+        <View style={tw`h-48 w-full bg-gray-200 dark:bg-[#23232b] mb-6`} />
 
         {/* Recently Played Section */}
         <View style={tw`px-4 mb-6`}>
@@ -98,7 +98,7 @@ const SkeletonLoader = () => {
           {[1, 2, 3].map((item) => (
             <View
               key={item}
-              style={tw`flex-row items-center p-2 bg-white rounded-lg shadow-sm mb-2`}
+              style={tw`flex-row items-center p-2 bg-white dark:bg-[#14141b] rounded-lg shadow-sm mb-2`}
             >
               <SkeletonBox width={48} height={48} style={tw`mr-3`} />
               <View style={tw`flex-1`}>
@@ -157,7 +157,7 @@ const SearchSkeleton = () => {
 
   const SkeletonBox = ({ width, height, style }: any) => (
     <Animated.View
-      style={[tw`bg-gray-200 rounded`, { width, height }, shimmerStyle, style]}
+      style={[tw`bg-gray-200 dark:bg-[#23232b] rounded`, { width, height }, shimmerStyle, style]}
     />
   );
 
@@ -192,7 +192,7 @@ const SearchSkeleton = () => {
           {[1, 2, 3].map((item) => (
             <View
               key={item}
-              style={tw`flex-row items-center p-2 bg-white rounded-lg shadow-sm mb-2`}
+              style={tw`flex-row items-center p-2 bg-white dark:bg-[#14141b] rounded-lg shadow-sm mb-2`}
             >
               <SkeletonBox width={48} height={48} style={tw`mr-3`} />
               <View style={tw`flex-1`}>

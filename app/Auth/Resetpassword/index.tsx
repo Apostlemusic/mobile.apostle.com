@@ -44,35 +44,35 @@ export default function Resetpassword() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
-      <View style={tw`flex-1 bg-white px-5 pt-16`}>
-        <Text style={tw`text-2xl font-bold mb-6`}>Reset password</Text>
+    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+      <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] px-5 pt-16`}>
+        <Text style={tw`text-2xl font-bold mb-6 text-black dark:text-gray-100`}>Reset password</Text>
 
-        <Text style={tw`text-gray-600 mb-2`}>Email</Text>
+        <Text style={tw`text-gray-600 dark:text-gray-400 mb-2`}>Email</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          style={tw`border border-gray-200 rounded-xl px-4 py-3 mb-4`}
+          style={tw`border border-gray-200 dark:border-[#2d2d35] rounded-xl px-4 py-3 mb-4 text-black dark:text-gray-100`}
           placeholder="you@example.com"
         />
 
-        <Text style={tw`text-gray-600 mb-2`}>OTP</Text>
+        <Text style={tw`text-gray-600 dark:text-gray-400 mb-2`}>OTP</Text>
         <TextInput
           value={otp}
           onChangeText={setOtp}
           keyboardType="number-pad"
-          style={tw`border border-gray-200 rounded-xl px-4 py-3 mb-4`}
+          style={tw`border border-gray-200 dark:border-[#2d2d35] rounded-xl px-4 py-3 mb-4 text-black dark:text-gray-100`}
           placeholder="123456"
         />
 
-        <Text style={tw`text-gray-600 mb-2`}>New password</Text>
+        <Text style={tw`text-gray-600 dark:text-gray-400 mb-2`}>New password</Text>
         <TextInput
           value={newPassword}
           onChangeText={setNewPassword}
           secureTextEntry
-          style={tw`border border-gray-200 rounded-xl px-4 py-3 mb-6`}
+          style={tw`border border-gray-200 dark:border-[#2d2d35] rounded-xl px-4 py-3 mb-6 text-black dark:text-gray-100`}
           placeholder="New password"
         />
 

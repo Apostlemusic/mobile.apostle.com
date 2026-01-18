@@ -22,8 +22,8 @@ export default function Signin() {
 
   const persistAuth = async (json: any) => {
     const userId = json?.user?.id;
-    const accessToken = json?.accessToken;
-    const refreshToken = json?.refreshToken;
+    const accessToken = json?.tokens?.accessToken ?? json?.accessToken;
+    const refreshToken = json?.tokens?.refreshToken ?? json?.refreshToken;
 
     if (!userId) throw new Error("Missing user.id in login response");
 
@@ -72,9 +72,9 @@ export default function Signin() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white`}>
-      <View style={tw`flex-1 bg-white p-4 pt-[10%]`}>
-        <Text style={tw`text-6xl text-[#373737] leading-normal font-bold mb-6 mt-7`}>
+    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+      <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] p-4 pt-[10%]`}>
+        <Text style={tw`text-6xl text-[#373737] dark:text-gray-100 leading-normal font-bold mb-6 mt-7`}>
           Welcome Back
         </Text>
 
@@ -88,7 +88,7 @@ export default function Signin() {
 
         <TouchableOpacity
           style={tw`w-full h-[47px] rounded-md flex items-center justify-center mt-12 ${
-            submitting ? "bg-gray-500" : "bg-[#264252]"
+            submitting ? "bg-gray-500 dark:bg-gray-600" : "bg-[#264252]"
           }`}
           onPress={onLogin}
           disabled={submitting}
@@ -101,7 +101,7 @@ export default function Signin() {
         </TouchableOpacity>
 
         <View style={tw`w-full flex flex-row items-center justify-between mt-4`}>
-          <Link href={"/Auth/Signup"} style={tw`text-[#373737] underline mt-4`}>
+          <Link href={"/Auth/Signup"} style={tw`text-[#373737] dark:text-gray-200 underline mt-4`}>
             Sign Up
           </Link>
 
@@ -109,7 +109,7 @@ export default function Signin() {
             onPress={() => router.push("/Auth/Forgotpassword")}
             style={tw`mt-4`}
           >
-            <Text style={tw`text-gray-700 text-center underline`}>
+            <Text style={tw`text-gray-700 dark:text-gray-300 text-center underline`}>
               Forgot Password?
             </Text>
           </TouchableOpacity>

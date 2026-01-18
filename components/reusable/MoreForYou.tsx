@@ -19,8 +19,6 @@ import {
   unwrapArray,
 } from "@/services/content";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 const SkeletonRow = ({ count = 5 }: { count?: number }) => {
   return (
     <ScrollView
@@ -29,16 +27,16 @@ const SkeletonRow = ({ count = 5 }: { count?: number }) => {
       style={tw`mt-3 pl-4`}
     >
       {Array.from({ length: count }).map((_, i) => (
-        <View
-          key={`sk-${i}`}
-          style={[
-            tw`mr-4 bg-gray-200`,
-            { width: 150, height: 200, borderRadius: 10, overflow: "hidden" },
-          ]}
-        >
-          <View style={[tw`bg-gray-300`, { flex: 1 }]} />
-        </View>
-      ))}
+          <View
+            key={`sk-${i}`}
+            style={[
+              tw`mr-4 bg-gray-200 dark:bg-[#23232b]`,
+              { width: 150, height: 200, borderRadius: 10, overflow: "hidden" },
+            ]}
+          >
+            <View style={[tw`bg-gray-300 dark:bg-[#2d2d35]`, { flex: 1 }]} />
+          </View>
+        ))}
     </ScrollView>
   );
 };
@@ -64,7 +62,7 @@ const UnifiedSection = ({
     return (
       <View style={tw`mt-8`}>
         <View style={tw`flex-row justify-between items-center px-4`}>
-          <Text style={tw`text-lg font-semibold text-gray-900`}>{title}</Text>
+            <Text style={tw`text-lg font-semibold text-gray-900 dark:text-gray-100`}>{title}</Text>
         </View>
         <SkeletonRow />
       </View>
@@ -75,6 +73,14 @@ const UnifiedSection = ({
     return null; // ✅ keep section hidden when empty
   }
 
+  const toSlug = (v?: string) =>
+    (v ?? "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+
   const onPressItem = (t: AnyItem) => {
     if (kind === "song") {
       const id = t._id;
@@ -82,49 +88,26 @@ const UnifiedSection = ({
       return;
     }
 
-    // NOTE: You previously routed category/genre into Library with old endpoints.
-    // Keeping the exact same navigation patterns but updating to new API routes
-    // (no UI changes).
     if (kind === "category") {
-      const slug =
-        t.slug ||
-        t.name?.toLowerCase?.().replace(/\s+/g, "") ||
-        t.title?.toLowerCase?.().replace(/\s+/g, "");
+      const slug = t.slug ?? toSlug(t.name ?? t.title);
       if (!slug) return;
 
-      router.push({
-        pathname: "/tabs/Library",
-        params: {
-          sourceApi: `/api/content/categories/${slug}`,
-          slug,
-          type: "category",
-        },
-      });
+      router.push(`/tabs/category/${encodeURIComponent(slug)}`);
       return;
     }
 
     if (kind === "genre") {
-      const slug =
-        t.slug ||
-        t.name?.toLowerCase?.().replace(/\s+/g, "") ||
-        t.title?.toLowerCase?.().replace(/\s+/g, "");
+      const slug = t.slug ?? toSlug(t.name ?? t.title);
       if (!slug) return;
 
-      router.push({
-        pathname: "/tabs/Library",
-        params: {
-          sourceApi: `/api/content/genres/${slug}`,
-          slug,
-          type: "genre",
-        },
-      });
+      router.push(`/tabs/genre/${encodeURIComponent(slug)}`);
     }
   };
 
   return (
     <View style={tw`mt-8`}>
       <View style={tw`flex-row justify-between items-center px-4`}>
-        <Text style={tw`text-lg font-semibold text-gray-900`}>{title}</Text>
+          <Text style={tw`text-lg font-semibold text-gray-900 dark:text-gray-100`}>{title}</Text>
       </View>
       <ScrollView
         horizontal
@@ -200,18 +183,11 @@ export default function MoreForYou() {
   const [categories, setCategories] = useState<AnyItem[]>([]);
   const [genres, setGenres] = useState<AnyItem[]>([]);
 
-  const getUserId = async () =>
-    (await AsyncStorage.getItem("userId")) ||
-    (await AsyncStorage.getItem("apostle.userId"));
-
   useEffect(() => {
     let mounted = true;
 
     (async () => {
       // 1) Recommended For You
-      // NOTE: content.ts currently has no "recommended" endpoint.
-      // Minimal safe behavior: use all songs as a stand-in (first N).
-      // If you add /api/content/songs/recommended later, I’ll swap it here.
       try {
         setRecommendedLoading(true);
         const data = await getAllSongs();
@@ -224,17 +200,12 @@ export default function MoreForYou() {
         if (mounted) setRecommendedLoading(false);
       }
 
-      // 2) Liked Songs (requires userId)
+      // 2) Liked Songs (auth-based; no userId param)
       try {
         setLikedLoading(true);
-        const userId = await getUserId();
-        if (!userId) {
-          if (mounted) setLiked([]);
-        } else {
-          const data = await getLikedSongs(userId);
-          const items = unwrapArray(data);
-          if (mounted) setLiked(items);
-        }
+        const data = await getLikedSongs();
+        const items = unwrapArray(data);
+        if (mounted) setLiked(items);
       } catch (e) {
         console.error("Liked fetch failed:", e);
         if (mounted) setLiked([]);
@@ -243,17 +214,17 @@ export default function MoreForYou() {
       }
 
       // 3) All Songs
-      try {
-        setAllSongsLoading(true);
-        const data = await getAllSongs();
-        const items = unwrapArray(data);
-        if (mounted) setAllSongs(items);
-      } catch (e) {
-        console.error("All songs fetch failed:", e);
-        if (mounted) setAllSongs([]);
-      } finally {
-        if (mounted) setAllSongsLoading(false);
-      }
+      // try {
+      //   setAllSongsLoading(true);
+      //   const data = await getAllSongs();
+      //   const items = unwrapArray(data);
+      //   if (mounted) setAllSongs(items);
+      // } catch (e) {
+      //   console.error("All songs fetch failed:", e);
+      //   if (mounted) setAllSongs([]);
+      // } finally {
+      //   if (mounted) setAllSongsLoading(false);
+      // }
 
       // 4) Categories
       try {
@@ -302,20 +273,19 @@ export default function MoreForYou() {
 
   return (
     <ScrollView
-      style={tw`flex-1 bg-white`}
+      style={tw`flex-1 bg-white dark:bg-[#0b0b10] pb-24`}
       showsVerticalScrollIndicator={false}
       overScrollMode="never"
     >
       <View style={tw`px-4 mt-8`}>
-        <Text style={tw`text-2xl font-bold text-gray-900`}>More For YOU</Text>
-        <Text style={tw`text-gray-500 mt-1`}>
+          <Text style={tw`text-2xl font-bold text-gray-900 dark:text-gray-100`}>More For YOU</Text>
+          <Text style={tw`text-gray-500 dark:text-gray-400 mt-1`}>
           We’ve seen your rotation and know this would fit right in
         </Text>
       </View>
 
       {renderSection("Recommended For You", "song", recommended, recommendedLoading)}
       {renderSection("Liked Songs", "song", liked, likedLoading)}
-      {renderSection("All Songs", "song", allSongs, allSongsLoading)}
       {renderSection("Categories", "category", categories, categoriesLoading)}
       {renderSection("Genres", "genre", genres, genresLoading)}
 

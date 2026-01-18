@@ -174,17 +174,10 @@ const PlaylistView: React.FC = () => {
         }}
       >
         <View
-          style={[
-            tw`flex-row items-center p-3 mb-2 rounded-2xl`,
-            {
-              backgroundColor: "#ffffff",
-              borderWidth: 1,
-              borderColor: "#eaeaea",
-            },
-          ]}
+          style={tw`flex-row items-center p-3 mb-2 rounded-2xl bg-white dark:bg-[#14141b] border border-[#eaeaea] dark:border-[#2d2d35]`}
         >
           <View
-            style={[tw`w-14 h-14 rounded-xl mr-3`, { overflow: "hidden", backgroundColor: "#f1f1f1" }]}
+            style={tw`w-14 h-14 rounded-xl mr-3 overflow-hidden bg-[#f1f1f1] dark:bg-[#23232b]`}
           >
             {item.trackImg ? (
               <Image source={{ uri: item.trackImg }} style={tw`w-full h-full`} resizeMode="cover" />
@@ -196,13 +189,13 @@ const PlaylistView: React.FC = () => {
           </View>
           <View style={tw`flex-1`}>
             <Text
-              style={[tw`text-black`, { fontSize: 16, fontWeight: "700" }]}
+              style={[tw`text-black dark:text-gray-100`, { fontSize: 16, fontWeight: "700" }]}
               numberOfLines={1}
             >
               {item.title}
             </Text>
             <Text
-              style={[tw`text-gray-500`, { fontSize: 12 }]}
+              style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 12 }]}
               numberOfLines={1}
             >
               {item.author}
@@ -215,9 +208,7 @@ const PlaylistView: React.FC = () => {
 
   if (isLoading && !playlist) {
     return (
-      <View
-        style={[tw`flex-1 items-center justify-center`, { backgroundColor: "#fafafa" }]}
-      >
+      <View style={tw`flex-1 items-center justify-center bg-[#fafafa] dark:bg-[#0b0b10]`}>
         <ActivityIndicator />
       </View>
     );
@@ -225,10 +216,8 @@ const PlaylistView: React.FC = () => {
 
   if (!playlist) {
     return (
-      <View
-        style={[tw`flex-1 items-center justify-center`, { backgroundColor: "#fafafa" }]}
-      >
-        <Text style={[tw`text-gray-500`, { fontSize: 14 }]}>
+      <View style={tw`flex-1 items-center justify-center bg-[#fafafa] dark:bg-[#0b0b10]`}>
+        <Text style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 14 }]}>
           Playlist not found
         </Text>
       </View>
@@ -236,7 +225,7 @@ const PlaylistView: React.FC = () => {
   }
 
   return (
-    <View style={[tw`flex-1`, { backgroundColor: "#fafafa" }]}>
+    <View style={tw`flex-1 bg-[#fafafa] dark:bg-[#0b0b10]`}>
       {/* Header */}
       <View style={tw`px-4 pt-6 pb-4 flex-row items-center justify-between`}>
         <View style={tw`flex-row items-center`}>
@@ -245,12 +234,13 @@ const PlaylistView: React.FC = () => {
             style={[
               tw`w-9 h-9 rounded-xl items-center justify-center mr-2`,
               { backgroundColor: "#f1f3f5" },
+              tw`dark:bg-[#23232b]`,
             ]}
           >
             <Ionicons name="chevron-back" size={18} color="#000" />
           </TouchableOpacity>
           <Text
-            style={[tw`text-black`, { fontSize: 20, fontWeight: "800" }]}
+            style={[tw`text-black dark:text-gray-100`, { fontSize: 20, fontWeight: "800" }]}
             numberOfLines={1}
           >
             {playlist?.name ?? "Playlist"}
@@ -258,9 +248,9 @@ const PlaylistView: React.FC = () => {
         </View>
         <TouchableOpacity
           onPress={fetchPlaylist}
-          style={[tw`px-3 py-2 rounded-xl`, { backgroundColor: "#eef2ff" }]}
+          style={tw`px-3 py-2 rounded-xl bg-[#eef2ff] dark:bg-[#1f2a44]`}
         >
-          <Text style={[tw`text-black`, { fontSize: 12, fontWeight: "600" }]}>
+          <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 12, fontWeight: "600" }]}>
             Refresh
           </Text>
         </TouchableOpacity>
@@ -277,12 +267,12 @@ const PlaylistView: React.FC = () => {
             {tracksLoading ? (
               <>
                 <ActivityIndicator />
-                <Text style={[tw`text-gray-500 mt-3`, { fontSize: 14 }]}>
+                <Text style={[tw`text-gray-500 dark:text-gray-400 mt-3`, { fontSize: 14 }]}>
                   Loading tracks…
                 </Text>
               </>
             ) : (
-              <Text style={[tw`text-gray-500`, { fontSize: 14 }]}>
+              <Text style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 14 }]}>
                 No tracks in this playlist
               </Text>
             )}

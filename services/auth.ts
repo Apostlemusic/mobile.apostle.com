@@ -14,7 +14,7 @@ export async function register(input: {
   name: string;
   phoneNumber?: string;
 }) {
-  const res = await api.post('/api/auth/register', input);
+  const res = await api.post('/api/user/register', input);
   const { access, refresh } = pickTokens(res.data);
   if (access || refresh) await setTokens(access ?? null, refresh ?? null);
   await setAuthEmail(input.email);
@@ -22,7 +22,7 @@ export async function register(input: {
 }
 
 export async function login(input: { email: string; password: string }) {
-  const res = await api.post('/api/auth/login', input);
+  const res = await api.post('/api/user/login', input);
   const { access, refresh } = pickTokens(res.data);
   if (access || refresh) await setTokens(access ?? null, refresh ?? null);
   await setAuthEmail(input.email);
@@ -30,34 +30,34 @@ export async function login(input: { email: string; password: string }) {
 }
 
 export async function verifyOtp(email: string, otp: string) {
-  const res = await api.post('/api/auth/verifyOtp', { email, otp });
+  const res = await api.post('/api/user/verifyOtp', { email, otp });
   return res.data;
 }
 
 export async function resendOtp(email: string) {
-  const res = await api.post('/api/auth/resendOtp', { email });
+  const res = await api.post('/api/user/resendOtp', { email });
   return res.data;
 }
 
 export async function forgotPassword(email: string) {
-  const res = await api.post('/api/auth/forgotPassword', { email });
+  const res = await api.post('/api/user/forgotPassword', { email });
   await setAuthEmail(email);
   return res.data;
 }
 
 export async function resetPassword(email: string, otp: string, newPassword: string) {
-  const res = await api.post('/api/auth/resetPassword', { email, otp, newPassword });
+  const res = await api.post('/api/user/resetPassword', { email, otp, newPassword });
   return res.data;
 }
 
 export async function isVerified(email: string) {
-  const res = await api.get('/api/auth/isVerified', { params: { email } });
+  const res = await api.get('/api/user/isVerified', { params: { email } });
   return res.data;
 }
 
 export async function logout() {
   try {
-    const res = await api.post('/api/auth/logout');
+    const res = await api.post('/api/user/logout');
     return res.data;
   } finally {
     await clearTokens();

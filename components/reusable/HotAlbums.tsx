@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, ImageBackground } from "react-native";
 import tw from "twrnc";
 import LinearGradient from "react-native-linear-gradient";
-import { getAllSongs } from "@/services/content";
+import { getDiscover } from "@/services/content";
 
 
 const fallbackAlbums = [
@@ -39,6 +39,19 @@ function pickSongs(payload: any): any[] {
   return [];
 }
 
+function unwrapDiscoverItems(payload: any): any[] {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.songs)) return payload.songs;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.data?.items)) return payload.data.items;
+  if (Array.isArray(payload?.data?.results)) return payload.data.results;
+  if (Array.isArray(payload?.data?.songs)) return payload.data.songs;
+  return [];
+}
+
 export default function TopHitsThisWeek() {
   const [albums, setAlbums] = useState<any[]>(fallbackAlbums);
 
@@ -46,8 +59,8 @@ export default function TopHitsThisWeek() {
     let mounted = true;
     (async () => {
       try {
-        const data = await getAllSongs();
-        const songs = pickSongs(data);
+        const data = await getDiscover({ section: "most-liked", limit: 10, type: "song" });
+        const songs = unwrapDiscoverItems(data);
 
         if (!mounted) return;
 
@@ -57,13 +70,12 @@ export default function TopHitsThisWeek() {
               id: s?._id ?? s?.trackId ?? idx,
               title: s?.title ?? "Unknown",
               artist: s?.author ?? (Array.isArray(s?.artists) ? s.artists.join(", ") : "Unknown"),
-              // keep UI identical: if API provides image use it, otherwise keep your local fallback image
               image: s?.trackImg ? { uri: s.trackImg } : require("../../assets/images/album-cover.jpg"),
             }))
           );
         }
-      } catch (e) {
-        console.error("Failed to load top hits:", e);
+      } catch {
+        // fallback remains
       }
     })();
 
@@ -73,8 +85,8 @@ export default function TopHitsThisWeek() {
   }, []);
 
   return (
-    <View style={tw`flex-1 bg-gray-50 pt-15`}>
-      <Text style={tw`text-2xl font-bold text-black ml-6 mb-5`}>
+    <View style={tw`flex-1 bg-gray-50 dark:bg-[#0b0b10] pt-15`}>
+      <Text style={tw`text-2xl font-bold text-black dark:text-gray-100 ml-6 mb-5`}>
         Top Hit's This Week
       </Text>
 

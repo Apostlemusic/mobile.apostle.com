@@ -141,12 +141,12 @@ export default function GenresSection() {
   }, [genres]);
 
   return (
-    <View style={tw`flex-1 bg-gray-50 pt-8 pb-6`}>
+    <View style={tw`flex-1 bg-gray-50 dark:bg-[#0b0b10] pt-8 pb-6`}>
       {/* Header */}
       <View style={tw`flex-row justify-between items-center px-6 mb-6`}>
-        <Text style={tw`text-2xl font-bold text-black`}>Genre's</Text>
+        <Text style={tw`text-2xl font-bold text-black dark:text-gray-100`}>Genre's</Text>
         <TouchableOpacity>
-          <Text style={tw`text-base text-gray-600`}>more</Text>
+          <Text style={tw`text-base text-gray-600 dark:text-gray-400`}>more</Text>
         </TouchableOpacity>
       </View>
 

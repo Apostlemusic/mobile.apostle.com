@@ -40,7 +40,7 @@ const AddToPlaylistModal = ({
         return;
       }
 
-      const data = await getUserPlaylists(userId);
+      const data = await getUserPlaylists();
 
       // ✅ FIX: use the normalized key from the service
       const list = (data?.playlists ?? []) as any[];
@@ -92,35 +92,37 @@ const AddToPlaylistModal = ({
       transparent
       onRequestClose={onClose}
     >
-      <View style={tw`flex-1 justify-end bg-black/50`}>
-        <View style={tw`bg-white rounded-t-3xl p-5`}>
+      <View style={tw`flex-1 justify-end bg-black/50 dark:bg-black/70`}>
+        <View style={tw`bg-white dark:bg-[#14141b] rounded-t-3xl p-5`}>
           {/* Header */}
           <View style={tw`flex-row justify-between items-center`}>
-            <Text style={tw`text-xl font-extrabold`}>Add to Playlist</Text>
+            <Text style={tw`text-xl font-extrabold text-black dark:text-gray-100`}>Add to Playlist</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
           </View>
 
           {/* Subheader */}
-          <Text style={tw`text-gray-600 mt-1`}>Choose a playlist to add this track</Text>
+          <Text style={tw`text-gray-600 dark:text-gray-400 mt-1`}>
+            Choose a playlist to add this track
+          </Text>
 
           {/* Loading Indicator */}
           {isLoading ? (
             <View style={tw`py-8 items-center`}>
               <ActivityIndicator size="large" color="#007AFF" />
-              <Text style={tw`text-gray-500 mt-3`}>Loading playlists…</Text>
+              <Text style={tw`text-gray-500 dark:text-gray-400 mt-3`}>Loading playlists…</Text>
             </View>
           ) : playlists.length === 0 ? (
             <View style={tw`py-10 items-center`}>
-              <Text style={tw`text-gray-500`}>No playlists available.</Text>
+              <Text style={tw`text-gray-500 dark:text-gray-400`}>No playlists available.</Text>
             </View>
           ) : (
             <View style={tw`mt-4`}>
               <FlatList
                 data={playlists}
                 keyExtractor={(item) => item._id}
-                ItemSeparatorComponent={() => <View style={tw`h-[1px] bg-gray-200`} />}
+                ItemSeparatorComponent={() => <View style={tw`h-[1px] bg-gray-200 dark:bg-[#2d2d35]`} />}
                 renderItem={({ item }) => {
                   const selected = selectedPlaylist?._id === item._id;
                   return (
@@ -129,10 +131,10 @@ const AddToPlaylistModal = ({
                       onPress={() => setSelectedPlaylist({ _id: item._id, name: item.name })}
                     >
                       <View style={tw`flex-1`}>
-                        <Text style={tw`text-[16px] font-semibold`} numberOfLines={1}>
+                        <Text style={tw`text-[16px] font-semibold text-black dark:text-gray-100`} numberOfLines={1}>
                           {item.name}
                         </Text>
-                        <Text style={tw`text-xs text-gray-500 mt-1`}>
+                        <Text style={tw`text-xs text-gray-500 dark:text-gray-400 mt-1`}>
                           {item.tracks?.length || 0} songs
                         </Text>
                       </View>
@@ -151,11 +153,11 @@ const AddToPlaylistModal = ({
           {/* Footer actions */}
           <View style={tw`mt-5 flex-row`}>
             <TouchableOpacity
-              style={tw`flex-1 bg-gray-200 p-3 rounded-xl mr-3`}
+              style={tw`flex-1 bg-gray-200 dark:bg-[#23232b] p-3 rounded-xl mr-3`}
               onPress={onClose}
               disabled={adding}
             >
-              <Text style={tw`text-center text-gray-700 font-semibold`}>Cancel</Text>
+              <Text style={tw`text-center text-gray-700 dark:text-gray-300 font-semibold`}>Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

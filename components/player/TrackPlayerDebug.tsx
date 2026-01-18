@@ -1,86 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import tw from 'twrnc';
-import { setupPlayer, updateOptions, debugStatus } from '@/services/trackPlayerService';
-import TrackPlayer from 'react-native-track-player';
-import { usePlayer } from '../player/PlayerContext';
+import React, { useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from "react-native";
+import tw from "twrnc";
+import { initTrackPlayer, simplePlayUrl } from "@/services/trackPlayerService";
+import { usePlayer } from "../player/PlayerContext";
 
 const TrackPlayerDebug: React.FC = () => {
-  const [id, setId] = useState('');
+  const [id, setId] = useState("");
   const [logs, setLogs] = useState<string[]>([]);
-  const { playById, currentTrack, audioUrl, prevHistory } = usePlayer();
+  const { playById, playPauseToggle, next, previous } = usePlayer();
 
-  const append = (s: string) => setLogs((l:any) => [s, ...l].slice(0, 200));
+  const append = (s: string) => setLogs((l) => [s, ...l].slice(0, 200));
 
   return (
-    <ScrollView style={tw`p-4`}>
-      <Text style={tw`text-lg font-bold mb-3`}>TrackPlayer Debug</Text>
+    <ScrollView style={tw`p-4 bg-white dark:bg-[#0b0b10]`}>
+      <Text style={tw`text-lg font-bold mb-3 text-black dark:text-gray-100`}>TrackPlayer Debug</Text>
 
       <TouchableOpacity
         style={tw`bg-blue-500 p-3 rounded mb-2`}
         onPress={async () => {
-          append('Running setupPlayer()...');
+          append("Running initTrackPlayer()...");
           try {
-            const ok = await setupPlayer();
-            append(`setupPlayer -> ${ok}`);
-          } catch (err: any) {
-            append(`setupPlayer error: ${String(err)}`);
+            await initTrackPlayer();
+            append("initTrackPlayer -> done");
+          } catch (err: unknown) {
+            append(`initTrackPlayer error: ${String(err)}`);
           }
         }}
       >
-        <Text style={tw`text-white text-center`}>setupPlayer()</Text>
+        <Text style={tw`text-white text-center`}>initTrackPlayer()</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={tw`bg-blue-500 p-3 rounded mb-2`}
+        style={tw`bg-gray-800 p-3 rounded mb-2`}
         onPress={async () => {
-          append('Running updateOptions()...');
-          try {
-            await updateOptions();
-            append('updateOptions -> done');
-          } catch (err: any) {
-            append(`updateOptions error: ${String(err)}`);
-          }
+          append("Toggling play/pause...");
+          await playPauseToggle();
         }}
       >
-        <Text style={tw`text-white text-center`}>updateOptions()</Text>
+        <Text style={tw`text-white text-center`}>Play / Pause</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={tw`bg-gray-800 p-3 rounded mb-4`}
-        onPress={async () => {
-          append('Running debugStatus()...');
-          try {
-            const out = await debugStatus();
-            append(JSON.stringify(out));
-          } catch (err: any) {
-            append(`debugStatus error: ${String(err)}`);
-          }
-        }}
-      >
-        <Text style={tw`text-white text-center`}>debugStatus()</Text>
-      </TouchableOpacity>
+      <View style={tw`flex-row gap-2 mb-2`}>
+        <TouchableOpacity
+          style={tw`flex-1 bg-gray-700 p-3 rounded`}
+          onPress={async () => {
+            append("Previous track...");
+            await previous();
+          }}
+        >
+          <Text style={tw`text-white text-center`}>Previous</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`flex-1 bg-gray-700 p-3 rounded`}
+          onPress={async () => {
+            append("Next track...");
+            await next();
+          }}
+        >
+          <Text style={tw`text-white text-center`}>Next</Text>
+        </TouchableOpacity>
+      </View>
 
-      <Text style={tw`font-semibold mb-2`}>Logs</Text>
       <TouchableOpacity
-        style={tw`bg-green-600 p-3 rounded mb-2`}
+        style={tw`bg-green-600 p-3 rounded mb-4`}
         onPress={async () => {
-          append('Adding sample track and playing...');
+          append("Playing sample track...");
           try {
-            // public sample mp3
-            const sample = {
-              id: 'sample-1',
-              url: 'https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3',
-              title: 'Sample MP3',
-              artist: 'File Examples',
-              artwork: 'https://via.placeholder.com/300',
-            };
-            await setupPlayer();
-            await TrackPlayer.reset();
-            await TrackPlayer.add(sample as any);
-            await TrackPlayer.play();
-            append('Sample track playing');
-          } catch (err: any) {
+            await initTrackPlayer();
+            await simplePlayUrl("https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3", {
+              id: "sample-1",
+              title: "Sample MP3",
+              artist: "File Examples",
+              artwork: "https://via.placeholder.com/300",
+            });
+            append("Sample track playing");
+          } catch (err: unknown) {
             append(`sample play error: ${String(err)}`);
           }
         }}
@@ -88,16 +82,30 @@ const TrackPlayerDebug: React.FC = () => {
         <Text style={tw`text-white text-center`}>Play Sample Track</Text>
       </TouchableOpacity>
 
-      <View>
-        <input value={id} onChange={(e) => setId(e.target.value)} placeholder="Track ID" />
-        <button onClick={() => id && playById(id)}>Play by ID</button>
-        <div>Now: {currentTrack?.id} - {currentTrack?.title}</div>
-        <div>Audio: {audioUrl ? 'loaded' : 'none'}</div>
-        <div>Prev history: {prevHistory.map(t => t.title).join(', ')}</div>
+      <View style={tw`mb-4`}>
+        <Text style={tw`font-semibold mb-2 text-black dark:text-gray-100`}>Play by Mongo ID</Text>
+        <TextInput
+          value={id}
+          onChangeText={setId}
+          placeholder="Track _id"
+          placeholderTextColor="#9ca3af"
+          style={tw`border border-gray-200 dark:border-[#2d2d35] rounded px-3 py-2 text-black dark:text-gray-100 mb-2`}
+        />
+        <TouchableOpacity
+          style={tw`bg-blue-600 p-3 rounded`}
+          onPress={async () => {
+            if (!id.trim()) return;
+            append(`Play by ID: ${id}`);
+            await playById(id.trim());
+          }}
+        >
+          <Text style={tw`text-white text-center`}>Play by ID</Text>
+        </TouchableOpacity>
       </View>
 
+      <Text style={tw`font-semibold mb-2 text-black dark:text-gray-100`}>Logs</Text>
       {logs.map((l, i) => (
-        <Text key={i} style={tw`text-sm text-gray-800 mb-1`}>- {l}</Text>
+        <Text key={i} style={tw`text-sm text-gray-800 dark:text-gray-300 mb-1`}>- {l}</Text>
       ))}
     </ScrollView>
   );

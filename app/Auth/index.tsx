@@ -54,9 +54,7 @@ const SplashScreen = () => {
           />
 
           <View style={tw`px-5 mt-[-10%]`}>
-            <Text
-              style={tw`text-[#373737] text-center font-semibold text-[24px] mb-8`}
-            >
+            <Text style={tw`text-[#373737] text-center font-semibold text-[24px] mb-8`}>
               Discover music and podcasts that resonate with your soul.
             </Text>
             <Text style={tw`text-[#808080] text-center text-[15px]`}>
@@ -78,9 +76,7 @@ const SplashScreen = () => {
           />
 
           <View style={tw`px-5 mt-[-10%]`}>
-            <Text
-              style={tw`text-[#373737] text-center font-semibold text-[25px] mb-8`}
-            >
+            <Text style={tw`text-[#373737] text-center font-semibold text-[25px] mb-8`}>
               Enrich your mind, with our curated selection of music, podcasts
               and sermons.
             </Text>
@@ -120,7 +116,7 @@ const SplashScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, tw`bg-white`]}>
       <Animated.View
         style={[
           styles.swipeContainer,
@@ -145,7 +141,11 @@ const SplashScreen = () => {
           {pages.map((_, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.tab, page === index && styles.activeTab]}
+              style={[
+                styles.tab,
+                tw`bg-gray-400`,
+                page === index && [styles.activeTab, tw`bg-[#8FD3F7]`],
+              ]}
               onPress={() => goToPage(index)}
             />
           ))}

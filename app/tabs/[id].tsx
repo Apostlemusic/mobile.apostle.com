@@ -115,7 +115,7 @@ const PlaylistPage = () => {
 
   if (isLoading) {
     return (
-      <View style={tw`flex-1 justify-center items-center`}>
+      <View style={tw`flex-1 justify-center items-center bg-gray-50 dark:bg-[#0b0b10]`}>
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
@@ -123,7 +123,7 @@ const PlaylistPage = () => {
 
   if (error) {
     return (
-      <View style={tw`flex-1 justify-center items-center`}>
+      <View style={tw`flex-1 justify-center items-center bg-gray-50 dark:bg-[#0b0b10]`}>
         <Text style={tw`text-lg text-red-500 mb-4`}>{error}</Text>
         <TouchableOpacity
           style={tw`bg-blue-500 px-4 py-2 rounded-lg`}
@@ -137,8 +137,8 @@ const PlaylistPage = () => {
 
   if (!playlist) {
     return (
-      <View style={tw`flex-1 justify-center items-center`}>
-        <Text style={tw`text-lg text-gray-600`}>Playlist not found</Text>
+      <View style={tw`flex-1 justify-center items-center bg-gray-50 dark:bg-[#0b0b10]`}>
+        <Text style={tw`text-lg text-gray-600 dark:text-gray-300`}>Playlist not found</Text>
       </View>
     );
   }
@@ -153,14 +153,14 @@ const PlaylistPage = () => {
   );
 
   return (
-    <View style={tw`flex-1 bg-gray-50`}>
+    <View style={tw`flex-1 bg-gray-50 dark:bg-[#0b0b10]`}>
       {/* Header Section */}
-      <View style={tw`flex-row items-center p-4 bg-white shadow-sm`}>
+      <View style={tw`flex-row items-center p-4 bg-white dark:bg-[#14141b] shadow-sm`}>
         <TouchableOpacity onPress={() => router.back()} style={tw`p-2`}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
         <Text
-          style={tw`text-xl font-medium text-center right-1/2 capitalize ml-4 flex-1`}
+          style={tw`text-xl font-medium text-center right-1/2 capitalize ml-4 flex-1 text-black dark:text-gray-100`}
         >
           {playlist.name}
         </Text>
@@ -182,7 +182,7 @@ const PlaylistPage = () => {
               >
                 <Pressable
                   onPress={() => playPauseSong(song)}
-                  style={tw`flex-row items-center p-4 bg-white rounded-lg shadow-sm my-2`}
+                  style={tw`flex-row items-center p-4 bg-white dark:bg-[#14141b] rounded-lg shadow-sm my-2`}
                 >
                   <Image
                     source={{ uri: song.trackImg || "https://via.placeholder.com/150" }}
@@ -190,10 +190,12 @@ const PlaylistPage = () => {
                     resizeMode="cover"
                   />
                   <View style={tw`flex-1`}>
-                    <Text style={tw`font-medium text-lg`}>{song.title}</Text>
-                   <Text style={tw`font-medium text-lg`}>{song.title || "Unknown Title"}</Text>
-                    <Text style={tw`text-sm text-gray-600`}>{song.author}</Text>
-                   <Text style={tw`text-sm text-gray-600`}>{song.author || "Unknown Artist"}</Text>
+                    <Text style={tw`font-medium text-lg text-black dark:text-gray-100`}>
+                      {song.title || "Unknown Title"}
+                    </Text>
+                    <Text style={tw`text-sm text-gray-600 dark:text-gray-400`}>
+                      {song.author || "Unknown Artist"}
+                    </Text>
                   </View>
                   <Ionicons
                     name={playingTrackId === song.trackId ? "pause" : "play"}
@@ -205,7 +207,7 @@ const PlaylistPage = () => {
             </GestureHandlerRootView>
           ))
         ) : (
-          <Text style={tw`text-gray-500 text-center`}>No songs available.</Text>
+          <Text style={tw`text-gray-500 dark:text-gray-400 text-center`}>No songs available.</Text>
         )}
       </ScrollView>
     </View>

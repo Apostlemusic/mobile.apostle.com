@@ -17,7 +17,10 @@ api.interceptors.request.use(async (config) => {
   const token =
     (await AsyncStorage.getItem("accessToken")) ||
     (await AsyncStorage.getItem("apostle.accessToken")) ||
-    (await AsyncStorage.getItem("apostle.token"));
+    (await AsyncStorage.getItem("apostle.token")) ||
+    (await AsyncStorage.getItem("token")) ||
+    (await AsyncStorage.getItem("jwt")) ||
+    (await AsyncStorage.getItem("apostle.jwt"));
 
   if (token) {
     config.headers = config.headers ?? {};

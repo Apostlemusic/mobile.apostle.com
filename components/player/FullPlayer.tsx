@@ -56,7 +56,7 @@ export function FullPlayer({ onClose, onLyricsToggle }: FullPlayerProps) {
       </View>
 
       <View style={tw`flex-1 justify-end`}>
-        <View style={tw`bg-white bg-opacity-30 p-4 rounded-[40px] m-3`}>
+        <View style={tw`bg-white bg-opacity-30 dark:bg-black/40 p-4 rounded-[40px] m-3`}>
           <TouchableOpacity onPress={onLyricsToggle} style={tw`mb-4`}>
             <Text style={tw`text-white text-center text-xs `}>Show Lyrics</Text>
           </TouchableOpacity>

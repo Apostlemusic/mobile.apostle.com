@@ -6,8 +6,10 @@ import tw from "twrnc";
 import { useAudio } from "@/contexts/AudioContext";
 import MusicPlayerModal from "./MusicPlayer";
 import { usePlayer } from "../player/PlayerContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const MiniPlayer = () => {
+  const { mode } = useTheme();
   const { 
     currentSong, 
     isPlaying, 
@@ -19,7 +21,7 @@ const MiniPlayer = () => {
     formatTime 
   } = useAudio();
 
-  const { currentTrack, playPauseToggle, previous } = usePlayer();
+  const { playPauseToggle, previous } = usePlayer();
 
   const [showFullPlayer, setShowFullPlayer] = useState(false);
 
@@ -32,6 +34,15 @@ const MiniPlayer = () => {
     currentSong?.trackImg || "https://via.placeholder.com/150x150?text=No+Song";
   const currentTime = currentSong ? formatTime(progress / 1000) : "0:00";
   const totalDuration = currentSong ? formatTime(duration / 1000) : "0:00";
+  const textColor = mode === "dark" ? "#f3f4f6" : "#000000";
+  const mutedColor = mode === "dark" ? "#9ca3af" : "#999999";
+  const gradientColors = currentSong
+    ? mode === "dark"
+      ? ["#2f3341", "#1b1f2b"]
+      : ["#77999B", "#81888842"]
+    : mode === "dark"
+      ? ["#2d2d35", "#111117"]
+      : ["#CCCCCC", "#E0E0E0"];
 
   return (
     <>
@@ -41,7 +52,7 @@ const MiniPlayer = () => {
         disabled={!currentSong} // Disable press when no song
       >
       <LinearGradient
-        colors={currentSong ? ["#77999B", "#81888842"] : ["#CCCCCC", "#E0E0E0"]}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         locations={[0.5, 1]} // 60% solid, 40% fade
@@ -50,16 +61,16 @@ const MiniPlayer = () => {
         {/* Cover Art */}
         <Image
           source={{ uri: songImage }}
-          style={tw`w-12 h-12 rounded-xl bg-gray-300`}
+          style={tw`w-12 h-12 rounded-xl bg-gray-300 dark:bg-[#23232b]`}
           resizeMode="cover"
         />
 
         {/* Song Info */}
         <View style={tw`flex-1 ml-3`}>
-          <Text style={tw`text-black font-semibold text-base ${!currentSong ? 'italic' : ''}`} numberOfLines={1}>
+          <Text style={[tw`font-semibold text-base ${!currentSong ? 'italic' : ''}`, { color: textColor }]} numberOfLines={1}>
             {songTitle}
           </Text>
-          <Text style={tw`text-black text-xs ${!currentSong ? 'italic' : ''}`} numberOfLines={1}>
+          <Text style={[tw`text-xs ${!currentSong ? 'italic' : ''}`, { color: textColor }]} numberOfLines={1}>
             {songAuthor}
           </Text>
         </View>
@@ -70,7 +81,7 @@ const MiniPlayer = () => {
               <Ionicons 
                 name="play-skip-back" 
                 size={24} 
-                color={currentSong ? "black" : "#999999"} 
+                color={currentSong ? textColor : mutedColor} 
               />
             </Pressable>
             <Pressable 
@@ -80,21 +91,21 @@ const MiniPlayer = () => {
               <Ionicons
                 name={isPlaying ? "pause" : "play"}
                 size={26}
-                color={currentSong ? "black" : "#999999"}
+                color={currentSong ? textColor : mutedColor}
               />
             </Pressable>
             <Pressable onPress={handleNext} disabled={!currentSong}>
               <Ionicons 
                 name="play-skip-forward" 
                 size={24} 
-                color={currentSong ? "black" : "#999999"} 
+                color={currentSong ? textColor : mutedColor} 
               />
             </Pressable>
           </View>
 
           {/* Timer */}
           <View style={tw`ml-3 mt-1`}>
-            <Text style={tw`text-black text-xs font-medium ${!currentSong ? 'opacity-50' : ''}`}>
+            <Text style={[tw`text-xs font-medium ${!currentSong ? 'opacity-50' : ''}`, { color: textColor }]}> 
               {currentTime} | {totalDuration}
             </Text>
           </View>

@@ -1,21 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable, Image, Platform } from "react-native";
 import tw from "twrnc";
-import { Ionicons } from "@expo/vector-icons";
 import { SkeletonLoader } from "@/components/reusable/Skeleton";
-import CarouselComponent from "@/components/carouselSlide/Carousel";
-import Topbar from "@/components/reusable/Topbar";
-import {
-  GetNewReleases,
-  GetPodcasts,
-  GetQuickPicks,
-  GetRecentlyPlays,
-  GetTrending,
-} from "@/components/getPlaylists/getPlaylists";
-import axios from "axios";
-import NavigationBar from "@/components/reusable/Navbar";
+
 import { SongProvider } from "@/contexts/SongContext";
-import MiniPlayer from "@/components/musicPlayer/Miniplayer";
 import MusicHome from "@/components/carouselSlide/Carousel";
 import MoreForYou from "@/components/reusable/MoreForYou";
 
@@ -37,9 +25,10 @@ const Index = () => {
         <SkeletonLoader />
       ) : (
         <SongProvider>
-          <ScrollView style={tw`bg-gray-50 h-full w-full ${Platform.OS === "ios" ? "mb-[100px]" : "mb-[135px]"}>`}>
+          <ScrollView style={tw`bg-gray-50 dark:bg-[#0b0b10] h-[100%] w-full`}>
             <MusicHome />
             <MoreForYou />
+            {/* <View style={tw`h-20`} />  Spacer to avoid content being hidden behind Miniplayer */}
           </ScrollView>
         </SongProvider>
       )}

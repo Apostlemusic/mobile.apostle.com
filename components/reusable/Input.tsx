@@ -56,7 +56,7 @@ const Input: React.FC<InputProps> = ({
         ]}
       >
         <TextInput
-          style={tw`flex-1 text-base`}
+          style={tw`flex-1 text-base text-black dark:text-gray-100`}
           placeholder={label}
           placeholderTextColor="#A1A1A1" // Set placeholder color to gray
           secureTextEntry={secureTextEntry && isPasswordVisible}

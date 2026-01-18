@@ -78,7 +78,7 @@ export default function ArtistPage() {
 
   useEffect(() => {
     if (!artist?._id || !userId) return;
-    return onArtistFollowChanged((event) => {
+    const unsubscribe = onArtistFollowChanged((event) => {
       if (String(event.artistId) !== String(artist._id)) return;
       if (String(event.userId) !== String(userId)) return;
       setArtist((prev: any) => {
@@ -94,6 +94,11 @@ export default function ArtistPage() {
       });
       setIsFollowing(event.isFollowing);
     });
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [artist?._id, userId]);
 
   const artistSongs = useMemo(() => {

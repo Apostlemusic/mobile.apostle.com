@@ -109,7 +109,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!userId) return;
-    return onArtistFollowChanged((event) => {
+    const unsubscribe = onArtistFollowChanged((event) => {
       if (String(event.userId) !== String(userId)) return;
       setResults((prev) => {
         const nextArtists = prev.artists.map((artist: any) => {
@@ -126,6 +126,12 @@ const Index = () => {
         return { ...prev, artists: nextArtists };
       });
     });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
   }, [userId]);
 
   const saveRecentSearch = async (term: string) => {
@@ -179,6 +185,8 @@ const Index = () => {
     fetchSearchResults();
   }, [search]);
 
+
+
   const hasAnyResults =
     results.songs.length ||
     results.albums.length ||
@@ -186,7 +194,6 @@ const Index = () => {
     results.lyrics.length ||
     results.categories.length ||
     results.genres.length;
-
   return (
     <SongProvider>
       <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>

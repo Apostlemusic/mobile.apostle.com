@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,6 +11,7 @@ import tw from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { login } from "@/services/auth";
 import Input from "@/components/reusable/Input";
+import { showErrorToast } from "@/utils/toast";
 
 export default function Signin() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function Signin() {
 
   const onLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Sign in", "Please enter email and password.");
+      showErrorToast("Sign in", "Please enter email and password.");
       return;
     }
 
@@ -63,7 +63,7 @@ export default function Signin() {
         e?.response?.data?.message ||
         e?.message ||
         "Please try again.";
-      Alert.alert("Login failed", msg);
+      showErrorToast("Login failed", msg);
       console.log("Login error:", e?.response?.data ?? e);
     } finally {
       setSubmitting(false);
@@ -72,7 +72,7 @@ export default function Signin() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] p-4 pt-[10%]`}>
         <Text style={tw`text-6xl text-[#373737] dark:text-gray-100 leading-normal font-bold mb-6 mt-7`}>
           Welcome Back

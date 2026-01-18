@@ -4,13 +4,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import tw from "twrnc";
 import { resetPassword } from "@/services/auth";
 import { getAuthEmail } from "@/lib/auth/tokens";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 export default function Resetpassword() {
   const router = useRouter();
@@ -28,23 +28,23 @@ export default function Resetpassword() {
 
   const onSubmit = async () => {
     if (!email || !otp || !newPassword) {
-      Alert.alert("Reset password", "Fill email, OTP and new password.");
+      showErrorToast("Reset password", "Fill email, OTP and new password.");
       return;
     }
     setSubmitting(true);
     try {
       await resetPassword(email, otp, newPassword);
-      Alert.alert("Success", "Password reset. Please sign in.");
+      showSuccessToast("Success", "Password reset. Please sign in.");
       router.replace("/Auth/Signin");
     } catch (e: any) {
-      Alert.alert("Reset failed", e?.response?.data?.message ?? "Try again.");
+      showErrorToast("Reset failed", e?.response?.data?.message ?? "Try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] px-5 pt-16`}>
         <Text style={tw`text-2xl font-bold mb-6 text-black dark:text-gray-100`}>Reset password</Text>
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, ImageBackground } from "react-native";
+import { View, Text, ScrollView, ImageBackground, TouchableOpacity } from "react-native";
 import tw from "twrnc";
 import LinearGradient from "react-native-linear-gradient";
 import { getDiscover } from "@/services/content";
+import { useRouter } from "expo-router";
 
 
 const fallbackAlbums = [
@@ -53,6 +54,7 @@ function unwrapDiscoverItems(payload: any): any[] {
 }
 
 export default function TopHitsThisWeek() {
+  const router = useRouter();
   const [albums, setAlbums] = useState<any[]>(fallbackAlbums);
 
   useEffect(() => {
@@ -96,30 +98,38 @@ export default function TopHitsThisWeek() {
         contentContainerStyle={tw`px-6`}
       >
         {albums.map((album: any) => (
-          <ImageBackground
+          <TouchableOpacity
             key={album.id}
-            source={album.image}
-            style={[tw`w-[150px] h-[220px] overflow-hidden shadow-lg mr-6`]}
-            imageStyle={{ borderBottomLeftRadius: 30, borderTopRightRadius: 30 }}
+            activeOpacity={0.9}
+            onPress={() =>
+              album?.artist &&
+              router.push(`/tabs/artist/${encodeURIComponent(String(album.artist))}` as any)
+            }
           >
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.8)"]}
-              style={[
-                tw`w-[150px] h-[220px] overflow-hidden p-3 shadow-lg`,
-                { borderBottomLeftRadius: 30, borderTopRightRadius: 30 },
-              ]}
+            <ImageBackground
+              source={album.image}
+              style={[tw`w-[150px] h-[220px] overflow-hidden shadow-lg mr-6`]}
+              imageStyle={{ borderBottomLeftRadius: 30, borderTopRightRadius: 30 }}
             >
-              {/* Artist & Title */}
-              <Text style={tw`text-white text-base font-semibold mb-1 w-full`}>
-                {album.artist}
-              </Text>
-              <Text
-                style={tw`text-white text-lg font-semibold absolute bottom-3 right-2 w-full text-center`}
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.8)"]}
+                style={[
+                  tw`w-[150px] h-[220px] overflow-hidden p-3 shadow-lg`,
+                  { borderBottomLeftRadius: 30, borderTopRightRadius: 30 },
+                ]}
               >
-                {album.title}
-              </Text>
-            </LinearGradient>
-          </ImageBackground>
+                {/* Artist & Title */}
+                <Text style={tw`text-white text-base font-semibold mb-1 w-full`}>
+                  {album.artist}
+                </Text>
+                <Text
+                  style={tw`text-white text-lg font-semibold absolute bottom-3 right-2 w-full text-center`}
+                >
+                  {album.title}
+                </Text>
+              </LinearGradient>
+            </ImageBackground>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

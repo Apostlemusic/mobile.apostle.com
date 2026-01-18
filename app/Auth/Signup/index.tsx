@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   Pressable,
   ActivityIndicator,
 } from "react-native";
@@ -12,6 +11,7 @@ import { useRouter } from "expo-router";
 import tw from "twrnc";
 import { register } from "@/services/auth";
 import Input from "@/components/reusable/Input";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 export default function Signup() {
   const router = useRouter();
@@ -23,23 +23,23 @@ export default function Signup() {
 
   const onSubmit = async () => {
     if (!name || !email || !password) {
-      Alert.alert("Sign up", "Please fill name, email and password.");
+      showErrorToast("Sign up", "Please fill name, email and password.");
       return;
     }
     setSubmitting(true);
     try {
       await register({ name, phoneNumber, email, password });
-      Alert.alert("Sign up", "Account created. Please verify your OTP.");
+      showSuccessToast("Sign up", "Account created. Please verify your OTP.");
       router.push("/Auth/Verify");
     } catch (e: any) {
-      Alert.alert("Sign up failed", e?.response?.data?.message ?? "Try again.");
+      showErrorToast("Sign up failed", e?.response?.data?.message ?? "Try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] p-4 pt-[20%]`}>
         {/* Create Account Header */}
         <Text style={tw`text-6xl leading-normal text-[#373737] dark:text-gray-100 font-bold mb-6`}>

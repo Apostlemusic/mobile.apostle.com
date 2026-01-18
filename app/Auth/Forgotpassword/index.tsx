@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +12,7 @@ import { forgotPassword } from "@/services/auth";
 import { getAuthEmail } from "@/lib/auth/tokens";
 import Input from "@/components/reusable/Input";
 import { Ionicons } from "@expo/vector-icons";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 export default function Forgotpassword() {
   const router = useRouter();
@@ -28,23 +28,23 @@ export default function Forgotpassword() {
 
   const onSubmit = async () => {
     if (!email) {
-      Alert.alert("Forgot password", "Enter your email.");
+      showErrorToast("Forgot password", "Enter your email.");
       return;
     }
     setSubmitting(true);
     try {
       await forgotPassword(email);
-      Alert.alert("OTP sent", "Check your email for the reset OTP.");
+      showSuccessToast("OTP sent", "Check your email for the reset OTP.");
       router.push("/Auth/Resetpassword");
     } catch (e: any) {
-      Alert.alert("Request failed", e?.response?.data?.message ?? "Try again.");
+      showErrorToast("Request failed", e?.response?.data?.message ?? "Try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] p-4`}>
         {/* Back Button */}
         <TouchableOpacity onPress={() => router.back()} style={tw`my-5`}>

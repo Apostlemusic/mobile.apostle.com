@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 import tw from "twrnc";
@@ -17,31 +18,6 @@ import { usePlayer } from "../player/PlayerContext";
 import { getDiscover } from "@/services/content";
 
 const { width: screenWidth } = Dimensions.get("window");
-
-// Sleek skeleton for loading
-const SkeletonCard = ({
-  width = 210,
-  height = 320,
-  roundedBL = 50,
-  roundedTR = 50,
-}: {
-  width?: number;
-  height?: number;
-  roundedBL?: number;
-  roundedTR?: number;
-}) => (
-  <View
-    style={[
-      tw`bg-gray-200 dark:bg-[#23232b]`,
-      {
-        width,
-        height,
-        borderBottomLeftRadius: roundedBL,
-        borderTopRightRadius: roundedTR,
-      },
-    ]}
-  />
-);
 
 type GlobalTrack = any;
 
@@ -183,12 +159,10 @@ const MusicHome = () => {
   };
 
   const hasJump = jumpBackIn.length > 0;
-  const showJumpSkeleton = jumpLoading && !hasJump;
   const hasNew = newReleases.length > 0;
-  const showNewSkeleton = newLoading && !hasNew;
 
   // Added helper to check visibility
-  const isJumpVisible = hasJump || showJumpSkeleton;
+  const isJumpVisible = hasJump || jumpLoading;
 
   // If request fails, hide section (or keep skeleton if you prefer)
   if (jumpError && !hasJump) return null;
@@ -204,9 +178,9 @@ const MusicHome = () => {
             Jump Back In
           </Text>
 
-          {showJumpSkeleton ? (
+          {jumpLoading && !hasJump ? (
             <View style={tw`w-full items-center -mb-16`}>
-              <SkeletonCard />
+              <ActivityIndicator color="#ffffff" />
             </View>
           ) : (
             <Carousel
@@ -229,18 +203,15 @@ const MusicHome = () => {
       ) : null}
 
       {/* New Releases Section */}
-      {hasNew || showNewSkeleton ? (
+      {hasNew || newLoading ? (
         <View style={tw`px-4 ${isJumpVisible ? "mt-24" : "mt-8"}`}>
           <Text style={tw`text-lg font-bold mb-3 text-black dark:text-gray-100`}>
             New Releases For YOU
           </Text>
-          {showNewSkeleton ? (
-            <FlatList
-              horizontal
-              data={[...Array(4)]}
-              renderItem={() => <SkeletonCard width={300} height={100} roundedBL={16} roundedTR={16} />}
-              showsHorizontalScrollIndicator={false}
-            />
+          {newLoading && !hasNew ? (
+            <View style={tw`py-6`}>
+              <ActivityIndicator color="#4B5563" />
+            </View>
           ) : (
             <FlatList
               horizontal

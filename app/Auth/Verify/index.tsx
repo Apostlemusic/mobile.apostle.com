@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import tw from "twrnc";
 import { getAuthEmail } from "@/lib/auth/tokens";
 import { resendOtp, verifyOtp } from "@/services/auth";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 export default function Verify() {
   const router = useRouter();
@@ -90,20 +90,17 @@ export default function Verify() {
   const handleVerifyOtp = async () => {
     const code = otp.join("");
     if (!email || code.length !== otp.length) {
-      Alert.alert("Verify", "Please enter email and complete OTP.");
+      showErrorToast("Verify", "Please enter email and complete OTP.");
       return;
     }
 
     setSubmitting(true);
     try {
       await verifyOtp(email, code);
-      Alert.alert("Verified", "OTP verified successfully.");
+      showSuccessToast("Verified", "OTP verified successfully.");
       router.replace("/tabs/Home");
     } catch (e: any) {
-      Alert.alert(
-        "Verification failed",
-        e?.response?.data?.message ?? "Try again."
-      );
+      showErrorToast("Verification failed", e?.response?.data?.message ?? "Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -111,22 +108,22 @@ export default function Verify() {
 
   const handleResendOtp = async () => {
     if (!email) {
-      Alert.alert("Resend OTP", "Enter email first.");
+      showErrorToast("Resend OTP", "Enter email first.");
       return;
     }
 
     try {
       await resendOtp(email);
-      Alert.alert("OTP sent", "Check your email.");
+      showSuccessToast("OTP sent", "Check your email.");
       setRemainingTime(60);
       setCanResend(false);
     } catch (e: any) {
-      Alert.alert("Resend failed", e?.response?.data?.message ?? "Try again.");
+      showErrorToast("Resend failed", e?.response?.data?.message ?? "Try again.");
     }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={tw`flex-1`}

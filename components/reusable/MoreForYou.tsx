@@ -5,6 +5,7 @@ import {
   ScrollView,
   ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import tw from "twrnc";
 import { usePlayer } from "../player/PlayerContext";
@@ -18,28 +19,6 @@ import {
   getLikedSongs,
   unwrapArray,
 } from "@/services/content";
-
-const SkeletonRow = ({ count = 5 }: { count?: number }) => {
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={tw`mt-3 pl-4`}
-    >
-      {Array.from({ length: count }).map((_, i) => (
-          <View
-            key={`sk-${i}`}
-            style={[
-              tw`mr-4 bg-gray-200 dark:bg-[#23232b]`,
-              { width: 150, height: 200, borderRadius: 10, overflow: "hidden" },
-            ]}
-          >
-            <View style={[tw`bg-gray-300 dark:bg-[#2d2d35]`, { flex: 1 }]} />
-          </View>
-        ))}
-    </ScrollView>
-  );
-};
 
 type AnyItem = any;
 
@@ -64,7 +43,9 @@ const UnifiedSection = ({
         <View style={tw`flex-row justify-between items-center px-4`}>
             <Text style={tw`text-lg font-semibold text-gray-900 dark:text-gray-100`}>{title}</Text>
         </View>
-        <SkeletonRow />
+        <View style={tw`py-6 items-center`}>
+          <ActivityIndicator color="#4B5563" />
+        </View>
       </View>
     );
   }

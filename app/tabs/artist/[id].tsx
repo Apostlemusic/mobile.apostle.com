@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayer } from '@/components/player/PlayerContext';
-import { followArtist, getArtistByName } from '@/services/artist';
+import { followArtist, getArtistByName, emitArtistFollowChanged, onArtistFollowChanged } from '@/services/artist';
 import { getUserId } from '@/services/authStorage';
 
 // Simple helper to normalize author/id mapping
@@ -76,6 +76,26 @@ export default function ArtistPage() {
     setIsFollowing(followers.some((id: any) => String(id) === String(userId)));
   }, [artist, userId]);
 
+  useEffect(() => {
+    if (!artist?._id || !userId) return;
+    return onArtistFollowChanged((event) => {
+      if (String(event.artistId) !== String(artist._id)) return;
+      if (String(event.userId) !== String(userId)) return;
+      setArtist((prev: any) => {
+        if (!prev) return prev;
+        const followers = Array.isArray(prev.followers) ? prev.followers : [];
+        const exists = followers.some((id: any) => String(id) === String(userId));
+        const nextFollowers = event.isFollowing
+          ? exists
+            ? followers
+            : [...followers, userId]
+          : followers.filter((id: any) => String(id) !== String(userId));
+        return { ...prev, followers: nextFollowers };
+      });
+      setIsFollowing(event.isFollowing);
+    });
+  }, [artist?._id, userId]);
+
   const artistSongs = useMemo(() => {
     return songs.filter(s => normalize(s.author || '') === normalize(artistName));
   }, [songs, artistName]);
@@ -105,16 +125,15 @@ export default function ArtistPage() {
     try {
       setFollowLoading(true);
       await followArtist({ artistId: artist._id, userId });
-      setArtist((prev: any) => {
-        if (!prev) return prev;
-        const followers = Array.isArray(prev.followers) ? prev.followers : [];
-        const exists = followers.some((id: any) => String(id) === String(userId));
-        const nextFollowers = exists
-          ? followers.filter((id: any) => String(id) !== String(userId))
-          : [...followers, userId];
-        setIsFollowing(!exists);
-        return { ...prev, followers: nextFollowers };
-      });
+      const followers = Array.isArray(artist?.followers) ? artist.followers : [];
+      const exists = followers.some((id: any) => String(id) === String(userId));
+      const nextFollowers = exists
+        ? followers.filter((id: any) => String(id) !== String(userId))
+        : [...followers, userId];
+      const nextIsFollowing = !exists;
+      setArtist((prev: any) => (prev ? { ...prev, followers: nextFollowers } : prev));
+      setIsFollowing(nextIsFollowing);
+      emitArtistFollowChanged({ artistId: String(artist._id), userId: String(userId), isFollowing: nextIsFollowing });
     } catch (e: any) {
       console.error('Failed to follow artist:', e?.response?.data ?? e);
     } finally {
@@ -123,7 +142,7 @@ export default function ArtistPage() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header / Hero */}
         <View style={tw`w-full h-64 mb-2`}>

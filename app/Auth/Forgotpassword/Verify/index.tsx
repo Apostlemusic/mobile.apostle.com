@@ -4,13 +4,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import tw from "twrnc";
 import { resendOtp, verifyOtp } from "@/services/auth";
 import { getAuthEmail } from "@/lib/auth/tokens";
+import { showErrorToast, showSuccessToast } from "@/utils/toast";
 
 export default function ForgotVerify() {
   const router = useRouter();
@@ -26,33 +26,31 @@ export default function ForgotVerify() {
   }, []);
 
   const onVerify = async () => {
-    if (!email || !otp) return Alert.alert("Verify", "Enter email and OTP.");
+    if (!email || !otp) return showErrorToast("Verify", "Enter email and OTP.");
     setSubmitting(true);
     try {
       await verifyOtp(email, otp);
+      showSuccessToast("Verified", "OTP verified successfully.");
       router.replace("/Auth/Resetpassword");
     } catch (e: any) {
-      Alert.alert(
-        "Verification failed",
-        e?.response?.data?.message ?? "Try again."
-      );
+      showErrorToast("Verification failed", e?.response?.data?.message ?? "Try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const onResend = async () => {
-    if (!email) return Alert.alert("Resend", "Enter email.");
+    if (!email) return showErrorToast("Resend", "Enter email.");
     try {
       await resendOtp(email);
-      Alert.alert("Sent", "OTP resent.");
+      showSuccessToast("Sent", "OTP resent.");
     } catch (e: any) {
-      Alert.alert("Failed", e?.response?.data?.message ?? "Try again.");
+      showErrorToast("Failed", e?.response?.data?.message ?? "Try again.");
     }
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
       <View style={tw`flex-1 bg-white dark:bg-[#0b0b10] px-5 pt-16`}>
         <Text style={tw`text-2xl font-bold mb-6 text-black dark:text-gray-100`}>Verify OTP</Text>
 

@@ -1,6 +1,29 @@
 import { api } from '@/lib/api/client';
 import { setTokens } from '@/lib/auth/tokens';
 
+type ArtistFollowEvent = {
+  artistId: string;
+  userId: string;
+  isFollowing: boolean;
+};
+
+const artistFollowEvents = {
+  listeners: new Set<(event: ArtistFollowEvent) => void>(),
+  emit(event: ArtistFollowEvent) {
+    this.listeners.forEach((fn) => fn(event));
+  },
+  subscribe(fn: (event: ArtistFollowEvent) => void) {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  },
+};
+
+export const emitArtistFollowChanged = (event: ArtistFollowEvent) =>
+  artistFollowEvents.emit(event);
+
+export const onArtistFollowChanged = (fn: (event: ArtistFollowEvent) => void) =>
+  artistFollowEvents.subscribe(fn);
+
 function pickTokens(payload: any): { access?: string; refresh?: string } {
   return {
     access: payload?.accessToken ?? payload?.data?.accessToken,

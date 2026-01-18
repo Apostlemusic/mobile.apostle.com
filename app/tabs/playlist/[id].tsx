@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { Swipeable } from "react-native-gesture-handler";
 import { useAudio } from "@/contexts/AudioContext";
@@ -225,20 +226,21 @@ const PlaylistView: React.FC = () => {
   }
 
   return (
-    <View style={tw`flex-1 bg-[#fafafa] dark:bg-[#0b0b10]`}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-[#fafafa] dark:bg-[#0b0b10]`}>
       {/* Header */}
-      <View style={tw`px-4 pt-6 pb-4 flex-row items-center justify-between`}>
-        <View style={tw`flex-row items-center`}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[
-              tw`w-9 h-9 rounded-xl items-center justify-center mr-2`,
-              { backgroundColor: "#f1f3f5" },
-              tw`dark:bg-[#23232b]`,
-            ]}
-          >
-            <Ionicons name="chevron-back" size={18} color="#000" />
-          </TouchableOpacity>
+      <View style={tw`px-4 pt-6 pb-4 flex-row items-center`}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={[
+            tw`w-9 h-9 rounded-xl items-center justify-center`,
+            { backgroundColor: "#f1f3f5" },
+            tw`dark:bg-[#23232b]`,
+          ]}
+        >
+          <Ionicons name="chevron-back" size={18} color="#000" />
+        </TouchableOpacity>
+
+        <View style={tw`flex-1 items-center`}>
           <Text
             style={[tw`text-black dark:text-gray-100`, { fontSize: 20, fontWeight: "800" }]}
             numberOfLines={1}
@@ -246,13 +248,16 @@ const PlaylistView: React.FC = () => {
             {playlist?.name ?? "Playlist"}
           </Text>
         </View>
+
         <TouchableOpacity
-          onPress={fetchPlaylist}
-          style={tw`px-3 py-2 rounded-xl bg-[#eef2ff] dark:bg-[#1f2a44]`}
+          onPress={() => {}}
+          style={[
+            tw`w-9 h-9 rounded-xl items-center justify-center`,
+            { backgroundColor: "#f1f3f5" },
+            tw`dark:bg-[#23232b]`,
+          ]}
         >
-          <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 12, fontWeight: "600" }]}>
-            Refresh
-          </Text>
+          <Ionicons name="ellipsis-vertical" size={18} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -281,7 +286,7 @@ const PlaylistView: React.FC = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

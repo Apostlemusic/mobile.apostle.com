@@ -4,17 +4,21 @@ import { Stack } from "expo-router";
 import { PlayerProvider } from "@/components/player/PlayerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useTheme } from "@/contexts/ThemeContext";
+import Toast from "react-native-toast-message";
 
 const ThemedRoot = () => {
   const { colors, mode } = useTheme();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: colors.background }}>
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
-      <Stack screenOptions={{ headerShown: false }} />
-    </View>
+      <View style={{ flex: 1 }}>
+        <Stack screenOptions={{ headerShown: false }} />
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -24,6 +28,7 @@ export default function RootLayout() {
       <ThemeProvider>
         <PlayerProvider>
           <ThemedRoot />
+          <Toast />
         </PlayerProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

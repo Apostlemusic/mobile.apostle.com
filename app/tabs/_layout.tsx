@@ -1,12 +1,6 @@
 import React, { useEffect } from "react";
-import {
-  SafeAreaView,
-  View,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Tabs, useRouter, usePathname } from "expo-router";
 import MiniPlayer from "@/components/musicPlayer/Miniplayer";
 import { SongProvider } from "@/contexts/SongContext";
@@ -58,7 +52,7 @@ const Layout = () => {
     <SongProvider>
       <AudioProvider>
         <PlayerProvider>
-          <SafeAreaView style={tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`}>
+          <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`}>
             <KeyboardAvoidingView
               behavior={Platform.OS === "android" ? "padding" : "height"}
               style={tw`flex-1`}

@@ -11,11 +11,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import tw from "twrnc";
 import { useRouter } from "expo-router";
 
 // Components
-import { SearchSkeleton } from "@/components/reusable/Skeleton";
 import ArtistProfileCard from "@/components/reusable/ArtistSlide";
 import TopHitsThisWeek from "@/components/reusable/HotAlbums";
 import Search from "@/components/icon/Search";
@@ -25,6 +25,8 @@ import { SongProvider } from "@/contexts/SongContext";
 import GenresSection from "@/components/reusable/GenreGrid";
 import { usePlayer } from "@/components/player/PlayerContext";
 import { searchAll } from "@/services/content";
+import { followArtist, emitArtistFollowChanged, onArtistFollowChanged } from "@/services/artist";
+import { getUserId } from "@/services/authStorage";
 
 type SearchResults = {
   songs: any[];
@@ -34,6 +36,8 @@ type SearchResults = {
   categories: any[];
   genres: any[];
 };
+
+const RECENT_SEARCHES_KEY = "search.recent";
 
 const emptyResults: SearchResults = {
   songs: [],
@@ -60,28 +64,90 @@ const toSlug = (v?: string) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
 
+
 const Index = () => {
   // State management
-  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<SearchResults>(emptyResults);
   const [isSearching, setIsSearching] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { playById } = usePlayer();
   const router = useRouter();
+  const [userId, setUserId] = useState("");
 
   const { height: screenHeight } = useWindowDimensions();
   const [searchBarHeight, setSearchBarHeight] = useState(0);
 
   const showOverlay = search.trim().length > 0;
 
-  // Initial loading effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    let mounted = true;
+    (async () => {
+      const id = await getUserId();
+      if (mounted) setUserId(id || "");
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (mounted && Array.isArray(parsed)) setRecentSearches(parsed);
+      } catch {
+        if (mounted) setRecentSearches([]);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    return onArtistFollowChanged((event) => {
+      if (String(event.userId) !== String(userId)) return;
+      setResults((prev) => {
+        const nextArtists = prev.artists.map((artist: any) => {
+          if (String(artist?._id) !== String(event.artistId)) return artist;
+          const list = Array.isArray(artist?.followers) ? artist.followers : [];
+          const exists = list.some((id: any) => String(id) === String(userId));
+          const followers = event.isFollowing
+            ? exists
+              ? list
+              : [...list, userId]
+            : list.filter((id: any) => String(id) !== String(userId));
+          return { ...artist, followers };
+        });
+        return { ...prev, artists: nextArtists };
+      });
+    });
+  }, [userId]);
+
+  const saveRecentSearch = async (term: string) => {
+    const value = term.trim();
+    if (!value) return;
+    const next = [value, ...recentSearches.filter((t) => t.toLowerCase() !== value.toLowerCase())].slice(0, 8);
+    setRecentSearches(next);
+    try {
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const clearRecentSearches = async () => {
+    setRecentSearches([]);
+    try {
+      await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   // Search effect
   useEffect(() => {
@@ -121,14 +187,9 @@ const Index = () => {
     results.categories.length ||
     results.genres.length;
 
-  // Loading state
-  if (isLoading) {
-    return <SearchSkeleton />;
-  }
-
   return (
     <SongProvider>
-      <SafeAreaView style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
+      <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
         <KeyboardAvoidingView
           style={tw`flex-1`}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -148,6 +209,8 @@ const Index = () => {
                   style={tw`text-base flex-1 text-black dark:text-gray-100`}
                   value={search}
                   onChangeText={setSearch}
+                  returnKeyType="search"
+                  onSubmitEditing={() => saveRecentSearch(search)}
                 />
                 <Search />
               </View>
@@ -156,6 +219,27 @@ const Index = () => {
             {/* Main Content (hidden when searching) */}
             {!showOverlay && (
               <ScrollView>
+                {recentSearches.length > 0 && (
+                  <View style={tw`px-4 mt-4`}> 
+                    <View style={tw`flex-row items-center justify-between mb-3`}>
+                      <Text style={tw`text-base font-semibold text-black dark:text-gray-100`}>Recent searches</Text>
+                      <TouchableOpacity onPress={clearRecentSearches}>
+                        <Text style={tw`text-xs text-gray-500 dark:text-gray-400`}>Clear</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={tw`flex-row flex-wrap`}>
+                      {recentSearches.map((term) => (
+                        <TouchableOpacity
+                          key={term}
+                          onPress={() => setSearch(term)}
+                          style={tw`px-3 py-2 mr-2 mb-2 rounded-full bg-[#f1f3f5] dark:bg-[#23232b]`}
+                        >
+                          <Text style={tw`text-xs text-gray-700 dark:text-gray-300`}>{term}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
                 {/* Search Header Section */}
                 <View style={tw`relative`}>
                   <View style={tw`w-full h-[420px] justify-end`}>
@@ -224,13 +308,13 @@ const Index = () => {
                                     style={[tw`text-black dark:text-gray-100`, { fontSize: 16, fontWeight: "700" }]}
                                     numberOfLines={1}
                                   >
-                                    {item?.title ?? "Unknown Title"}
+                                    {item?.title ?? ""}
                                   </Text>
                                   <Text
                                     style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 12 }]}
                                     numberOfLines={1}
                                   >
-                                    {item?.author ?? (item?.artists?.join(", ") ?? "Unknown Artist")}
+                                    {item?.author ?? item?.artists?.join(", ") ?? ""}
                                   </Text>
                                 </View>
                               </TouchableOpacity>
@@ -245,6 +329,41 @@ const Index = () => {
                           <Text style={tw`text-lg font-bold mb-2 text-black dark:text-gray-100`}>Artists</Text>
                           {results.artists.map((a: any, idx: number) => {
                             const name = a?.name ?? a?.artistName ?? "";
+                                const avatar = a?.profileImg || a?.image || a?.trackImg;
+                                const about = a?.about || a?.description || "";
+                                const followers = Array.isArray(a?.followers) ? a.followers : [];
+                                const followerCount = followers.length;
+                                const isFollowing = !!userId && followers.some((id: any) => String(id) === String(userId));
+                                const isVerified = Boolean(a?.isVerified ?? a?.verified ?? a?.is_verified);
+
+                                const onToggleFollow = async () => {
+                                  if (!userId || !a?._id) return;
+                                  try {
+                                    await followArtist({ artistId: a._id, userId });
+                                    setResults((prev) => {
+                                      const nextArtists = prev.artists.map((artist: any) => {
+                                        if (String(artist?._id) !== String(a?._id)) return artist;
+                                        const list = Array.isArray(artist?.followers) ? artist.followers : [];
+                                        const exists = list.some((id: any) => String(id) === String(userId));
+                                        const nextIsFollowing = !exists;
+                                        emitArtistFollowChanged({
+                                          artistId: String(a._id),
+                                          userId: String(userId),
+                                          isFollowing: nextIsFollowing,
+                                        });
+                                        return {
+                                          ...artist,
+                                          followers: exists
+                                            ? list.filter((id: any) => String(id) !== String(userId))
+                                            : [...list, userId],
+                                        };
+                                      });
+                                      return { ...prev, artists: nextArtists };
+                                    });
+                                  } catch (e) {
+                                    // silent fail; toast handled in artist screen if needed
+                                  }
+                                };
                             return (
                               <TouchableOpacity
                                 key={a?._id ?? a?.id ?? `artist-${idx}`}
@@ -254,12 +373,62 @@ const Index = () => {
                                   name && router.push(`/tabs/artist/${encodeURIComponent(name)}` as any)
                                 }
                               >
-                                <Text style={tw`text-black dark:text-gray-100 font-semibold`} numberOfLines={1}>
-                                  {name || "Unknown Artist"}
-                                </Text>
-                                <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>
-                                  {a?.genre ?? a?.genres?.join(", ") ?? ""}
-                                </Text>
+                                    <View style={tw`flex-row items-center`}>
+                                      <View style={tw`w-12 h-12 rounded-full mr-3 bg-[#f1f1f1] dark:bg-[#23232b] overflow-hidden`}>
+                                        {avatar ? (
+                                          <Image source={{ uri: avatar }} style={tw`w-full h-full`} resizeMode="cover" />
+                                        ) : (
+                                          <View style={tw`flex-1 items-center justify-center`}>
+                                            <Text style={tw`text-gray-500 dark:text-gray-400`}>🎤</Text>
+                                          </View>
+                                        )}
+                                      </View>
+                                      <View style={tw`flex-1`}>
+                                        <View style={tw`flex-row items-center`}>
+                                          <Text style={tw`text-black dark:text-gray-100 font-semibold text-lg`} numberOfLines={1}>
+                                            {name || ""}
+                                          </Text>
+                                          {isVerified ? (
+                                            <View style={tw`ml-2 px-2 py-[2px] rounded-full bg-[#e8f0fe] dark:bg-[#1f2a44]`}>
+                                              <Text style={tw`text-[10px] text-[#2e77ff] dark:text-[#9bbcff] font-semibold`}>
+                                                Verified
+                                              </Text>
+                                            </View>
+                                          ) : null}
+                                        </View>
+                                        {/* <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>
+                                          {a?.genre ?? a?.genres?.join(", ") ?? ""}
+                                        </Text> */}
+                                        {/* {about ? (
+                                          <Text style={tw`text-gray-600 dark:text-gray-300 text-xs mt-1`} numberOfLines={2}>
+                                            {about}
+                                          </Text>
+                                        ) : null} */}
+                                      </View>
+                                      <View style={tw`items-end ml-2`}>
+                                        <Text style={tw`text-[10px] text-gray-500 dark:text-gray-400 mb-1`}>
+                                          {followerCount} follower{followerCount === 1 ? "" : "s"}
+                                        </Text>
+                                        <TouchableOpacity
+                                          onPress={onToggleFollow}
+                                          disabled={!userId}
+                                          style={[
+                                            tw`px-3 py-1 rounded-full`,
+                                            isFollowing ? tw`bg-[#f1f3f5] dark:bg-[#23232b]` : tw`bg-[#2e77ff]`,
+                                            !userId ? tw`opacity-60` : null,
+                                          ]}
+                                        >
+                                          <Text
+                                            style={[
+                                              tw`text-[11px] font-semibold`,
+                                              isFollowing ? tw`text-black dark:text-gray-100` : tw`text-white`,
+                                            ]}
+                                          >
+                                            {isFollowing ? "Unfollow" : "Follow"}
+                                          </Text>
+                                        </TouchableOpacity>
+                                      </View>
+                                    </View>
                               </TouchableOpacity>
                             );
                           })}
@@ -276,7 +445,7 @@ const Index = () => {
                               style={tw`p-3 mb-2 rounded-2xl bg-white dark:bg-[#14141b] border border-[#eaeaea] dark:border-[#2d2d35]`}
                             >
                               <Text style={tw`text-black dark:text-gray-100 font-semibold`} numberOfLines={1}>
-                                {al?.title ?? al?.name ?? "Unknown Album"}
+                                {al?.title ?? al?.name ?? ""}
                               </Text>
                               <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>
                                 {al?.artist ?? al?.author ?? ""}
@@ -300,7 +469,7 @@ const Index = () => {
                                 onPress={() => slug && router.push(`/tabs/category/${encodeURIComponent(slug)}`)}
                               >
                                 <Text style={tw`text-black dark:text-gray-100 font-semibold`} numberOfLines={1}>
-                                  {c?.name ?? c?.title ?? "Unknown Category"}
+                                  {c?.name ?? c?.title ?? ""}
                                 </Text>
                               </TouchableOpacity>
                             );
@@ -322,7 +491,7 @@ const Index = () => {
                                 onPress={() => slug && router.push(`/tabs/genre/${encodeURIComponent(slug)}`)}
                               >
                                 <Text style={tw`text-black dark:text-gray-100 font-semibold`} numberOfLines={1}>
-                                  {g?.name ?? g?.title ?? "Unknown Genre"}
+                                  {g?.name ?? g?.title ?? ""}
                                 </Text>
                               </TouchableOpacity>
                             );
@@ -340,7 +509,7 @@ const Index = () => {
                               style={tw`p-3 mb-2 rounded-2xl bg-white dark:bg-[#14141b] border border-[#eaeaea] dark:border-[#2d2d35]`}
                             >
                               <Text style={tw`text-black dark:text-gray-100 font-semibold`} numberOfLines={1}>
-                                {l?.title ?? "Lyrics"}
+                                {l?.title ?? ""}
                               </Text>
                               <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={2}>
                                 {l?.snippet ?? l?.text ?? ""}

@@ -13,10 +13,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/images/Apostle-Logo.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.washwisee.apostle"
     },
     "android": {
+      "icon": "./assets/images/Apostle-Logo.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Apostle-Logo.png",
         "backgroundColor": "#ffffff"

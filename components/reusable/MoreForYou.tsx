@@ -98,6 +98,7 @@ const UnifiedSection = ({
         {data.map((t: AnyItem, idx: number) => {
           const key = String(t.trackId || t._id || t.id || t.slug || idx);
           const img =
+            t.imageUrl ||
             t.artworkUrl ||
             t.trackImg ||
             t.image ||
@@ -123,21 +124,22 @@ const UnifiedSection = ({
                   backgroundColor: "#e0e0e0",
                 }}
               >
+                <View
+                  style={tw`absolute inset-0 bg-black/45 rounded-tr-[30px] rounded-bl-[30px]`}
+                  pointerEvents="none"
+                />
                 <Text
-                  style={tw`text-white text-[16px] font-extrabold text-left w-2/3`}
+                  style={tw`text-white text-[15px] font-extrabold tracking-wide text-left w-2/3`}
                   numberOfLines={2}
                 >
                   {t.title ?? t.name ?? " "}
                 </Text>
                 <View style={tw`w-full flex-row justify-between items-end mt-2`}>
                   <Text
-                    style={tw`text-white text-sm font-extrabold text-right w-2/3`}
-                    numberOfLines={1}
+                    style={tw`text-white/90 text-[13px] font-semibold tracking-wide text-right w-full align-middle`}
+                    numberOfLines={2}
                   >
-                    {t.author ||
-                      t.artist ||
-                      (t.slug ? `#${t.slug}` : "") ||
-                      " "}
+                    {t.author || t.artist || " "}
                   </Text>
                 </View>
               </ImageBackground>

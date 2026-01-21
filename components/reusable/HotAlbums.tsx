@@ -5,41 +5,6 @@ import LinearGradient from "react-native-linear-gradient";
 import { getDiscover } from "@/services/content";
 import { useRouter } from "expo-router";
 
-
-const fallbackAlbums = [
-  {
-    id: 1,
-    title: "He Is Amazing",
-    artist: "Samuel Agboyega",
-    image: require("../../assets/images/album-cover.jpg"),
-  },
-  {
-    id: 2,
-    title: "Symphony's Mix, Vol 1",
-    artist: "Heaven's Symphony",
-    image: require("../../assets/images/album-cover.jpg"),
-  },
-  {
-    id: 3,
-    title: "OBA",
-    artist: "Samuel Agboyega",
-    image: require("../../assets/images/album-cover.jpg"),
-  },
-  {
-    id: 4,
-    title: "Another Album",
-    artist: "Samuel Agboyega",
-    image: require("../../assets/images/album-cover.jpg"),
-  },
-];
-
-function pickSongs(payload: any): any[] {
-  if (Array.isArray(payload?.songs)) return payload.songs;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload)) return payload;
-  return [];
-}
-
 function unwrapDiscoverItems(payload: any): any[] {
   if (!payload) return [];
   if (Array.isArray(payload)) return payload;
@@ -55,7 +20,7 @@ function unwrapDiscoverItems(payload: any): any[] {
 
 export default function TopHitsThisWeek() {
   const router = useRouter();
-  const [albums, setAlbums] = useState<any[]>(fallbackAlbums);
+  const [albums, setAlbums] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -70,14 +35,14 @@ export default function TopHitsThisWeek() {
           setAlbums(
             songs.slice(0, 10).map((s: any, idx: number) => ({
               id: s?._id ?? s?.trackId ?? idx,
-              title: s?.title ?? "Unknown",
-              artist: s?.author ?? (Array.isArray(s?.artists) ? s.artists.join(", ") : "Unknown"),
-              image: s?.trackImg ? { uri: s.trackImg } : require("../../assets/images/album-cover.jpg"),
+              title: s?.title ?? "",
+              artist: s?.author ?? (Array.isArray(s?.artists) ? s.artists.join(", ") : ""),
+              image: s?.trackImg ? { uri: s.trackImg } : null,
             }))
           );
         }
       } catch {
-        // fallback remains
+        // no fallback
       }
     })();
 
@@ -97,7 +62,9 @@ export default function TopHitsThisWeek() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={tw`px-6`}
       >
-        {albums.map((album: any) => (
+        {albums.map((album: any) => {
+          if (!album?.image) return null;
+          return (
           <TouchableOpacity
             key={album.id}
             activeOpacity={0.9}
@@ -130,7 +97,8 @@ export default function TopHitsThisWeek() {
               </LinearGradient>
             </ImageBackground>
           </TouchableOpacity>
-        ))}
+          );
+        })}
       </ScrollView>
     </View>
   );

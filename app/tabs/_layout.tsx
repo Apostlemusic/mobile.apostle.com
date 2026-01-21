@@ -75,7 +75,7 @@ const Layout = () => {
 
           {/* Custom Bottom Navigation */}
           <View
-            style={tw`absolute bottom-0 left-0 right-0 bg-[#0081C9] dark:bg-[#14141b] px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
+            style={tw`absolute bottom-0 left-0 right-0 bg-[#CCCCCC] dark:bg-[#14141b] px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
           >
             {Links.map((link, index) => {
               const isActive = pathname === link.path;

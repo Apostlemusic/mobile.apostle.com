@@ -10,6 +10,7 @@ import { Link, useRouter } from "expo-router";
 import tw from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { login } from "@/services/auth";
+import { setAuthInvalid, setTokens } from "@/lib/auth/tokens";
 import Input from "@/components/reusable/Input";
 import { showErrorToast } from "@/utils/toast";
 
@@ -38,6 +39,9 @@ export default function Signin() {
       ["refreshToken", String(refreshToken ?? "")],
       ["apostle.refreshToken", String(refreshToken ?? "")],
     ]);
+
+    await setTokens(accessToken ?? null, refreshToken ?? null);
+    await setAuthInvalid(false);
   };
 
   const onLogin = async () => {

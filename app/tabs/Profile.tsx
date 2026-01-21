@@ -13,6 +13,7 @@ import Slider from "@react-native-community/slider";
 import tw from "twrnc";
 import { useRouter } from "expo-router";
 import { logout } from "@/services/auth";
+import { getAuthInvalid } from "@/lib/auth/tokens";
 import { getMyProfile } from "@/services/users";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -26,6 +27,7 @@ export default function SettingsScreen() {
 
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [authInvalid, setAuthInvalid] = useState(false);
   const [user, setUser] = useState<
     | {
         _id: string;
@@ -72,6 +74,17 @@ export default function SettingsScreen() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const invalid = await getAuthInvalid();
+      if (mounted) setAuthInvalid(invalid);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [profileError, sidebarOpen]);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -318,12 +331,29 @@ export default function SettingsScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            onPress={handleLogout}
-            style={[tw`mt-6 rounded-lg px-4 py-3`, { backgroundColor: colors.muted }]}
-          >
-            <Text style={tw`text-white font-semibold text-center`}>Log Out</Text>
-          </TouchableOpacity>
+          {authInvalid || !user ? (
+            <View style={tw`mt-6`}>
+              <TouchableOpacity
+                onPress={() => router.push("/Auth/Signin")}
+                style={[tw`rounded-lg px-4 py-3`, { backgroundColor: colors.primary }]}
+              >
+                <Text style={tw`text-white font-semibold text-center`}>Sign In</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/Auth/Signup")}
+                style={[tw`mt-3 rounded-lg px-4 py-3`, { backgroundColor: colors.muted }]}
+              >
+                <Text style={tw`text-white font-semibold text-center`}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={[tw`mt-6 rounded-lg px-4 py-3`, { backgroundColor: colors.muted }]}
+            >
+              <Text style={tw`text-white font-semibold text-center`}>Log Out</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Animated.View>
     </View>

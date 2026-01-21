@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { clearTokens, setAuthEmail, setTokens } from '@/lib/auth/tokens';
+import { clearTokens, setAuthEmail, setAuthInvalid, setTokens } from '@/lib/auth/tokens';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 function pickTokens(payload: any): { access?: string; refresh?: string } {
@@ -27,6 +27,7 @@ export async function register(input: {
     const res = await api.post('/api/user/register', input);
     const { access, refresh } = pickTokens(res.data);
     if (access || refresh) await setTokens(access ?? null, refresh ?? null);
+    await setAuthInvalid(false);
     await setAuthEmail(input.email);
     showSuccessToast('Sign up successful', res.data?.message || 'Account created.');
     return res.data;
@@ -41,6 +42,7 @@ export async function login(input: { email: string; password: string }) {
     const res = await api.post('/api/user/login', input);
     const { access, refresh } = pickTokens(res.data);
     if (access || refresh) await setTokens(access ?? null, refresh ?? null);
+    await setAuthInvalid(false);
     await setAuthEmail(input.email);
     showSuccessToast('Signed in', res.data?.message || 'Welcome back.');
     return res.data;

@@ -7,6 +7,7 @@ import { useAudio } from "@/contexts/AudioContext";
 import MusicPlayerModal from "./MusicPlayer";
 import { usePlayer } from "../player/PlayerContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import AuthorLink from "@/components/reusable/AuthorLink";
 
 const MiniPlayer = () => {
   const { mode } = useTheme();
@@ -70,9 +71,20 @@ const MiniPlayer = () => {
           <Text style={[tw`font-semibold text-base ${!currentSong ? 'italic' : ''}`, { color: textColor }]} numberOfLines={1}>
             {songTitle}
           </Text>
-          <Text style={[tw`text-xs ${!currentSong ? 'italic' : ''}`, { color: textColor }]} numberOfLines={1}>
-            {songAuthor}
-          </Text>
+          {currentSong ? (
+            <AuthorLink
+              name={songAuthor}
+              style={[tw`text-xs`, { color: textColor }]}
+              numberOfLines={1}
+            />
+          ) : (
+            <Text
+              style={[tw`text-xs italic`, { color: textColor }]}
+              numberOfLines={1}
+            >
+              {songAuthor}
+            </Text>
+          )}
         </View>
 
         <View>

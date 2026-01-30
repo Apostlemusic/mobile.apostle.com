@@ -16,6 +16,7 @@ import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
 import { getPlaylistById, getSongById, removeTrackFromPlaylist } from "@/services/content";
 import { usePlayer } from "@/components/player/PlayerContext";
+import AuthorLink from "@/components/reusable/AuthorLink";
 
 // Lightweight event bus to notify playlist changes across the app
 const playlistEvents = {
@@ -195,12 +196,11 @@ const PlaylistView: React.FC = () => {
             >
               {item.title}
             </Text>
-            <Text
+            <AuthorLink
+              name={item.author}
               style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 12 }]}
               numberOfLines={1}
-            >
-              {item.author}
-            </Text>
+            />
           </View>
         </View>
       </TouchableOpacity>
@@ -230,7 +230,7 @@ const PlaylistView: React.FC = () => {
       {/* Header */}
       <View style={tw`px-4 pt-6 pb-4 flex-row items-center`}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push("/tabs/Library")}
           style={[
             tw`w-9 h-9 rounded-xl items-center justify-center`,
             { backgroundColor: "#f1f3f5" },

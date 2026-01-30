@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { View, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Tabs, useRouter, usePathname } from "expo-router";
 import MiniPlayer from "@/components/musicPlayer/Miniplayer";
 import { SongProvider } from "@/contexts/SongContext";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { PlayerProvider } from "@/components/player/PlayerContext";
 import tw from "twrnc";
+import { useTheme } from "@/contexts/ThemeContext";
 import AccountActive from "@/components/icon/AccountActive";
 import Account from "@/components/icon/Account";
 import HomeActive from "@/components/icon/HomeActive";
@@ -21,9 +22,15 @@ import Burst from "@/components/icon/Burst";
 const Layout = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+  const { mode } = useTheme();
 
-  const activeColor = "#FFFFFF";
-  const inactiveColor = "rgba(255,255,255,0.75)";
+  const TAB_BAR_HEIGHT = 72;
+  const MINI_PLAYER_HEIGHT = 96;
+  const EXTRA_BOTTOM_PADDING = 140;
+
+  const activeColor = mode === "dark" ? "#FFFFFF" : "#000000";
+  const inactiveColor = mode === "dark" ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.6)";
 
   const Links = [
     {
@@ -52,7 +59,13 @@ const Layout = () => {
     <SongProvider>
       <AudioProvider>
         <PlayerProvider>
-          <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`}>
+          <SafeAreaView
+            edges={["left", "right", "bottom"]}
+            style={[
+              tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`,
+              { paddingBottom: insets.bottom + EXTRA_BOTTOM_PADDING },
+            ]}
+          >
             <KeyboardAvoidingView
               behavior={Platform.OS === "android" ? "padding" : "height"}
               style={tw`flex-1`}

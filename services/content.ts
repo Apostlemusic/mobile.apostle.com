@@ -105,33 +105,42 @@ export async function isLikedByMeFromLikesArray(likes?: unknown) {
 
 // ✅ GET user playlists (auth-based, no userId)
 export async function getUserPlaylists() {
-  const res = await api.get('/api/content/playlists');
+  const res = await api.get('/api/user/playlists');
   const data = res.data;
 
   return {
     ...data,
-    playlists:
-      Array.isArray(data?.playLists) || Array.isArray(data?.playlists)
-        ? unwrapArray(data)
-        : [],
+    playlists: Array.isArray(data?.playlists) ? data.playlists : [],
   };
 }
 
 // ✅ GET playlist by id
 // Response: { success:true, playList:{...} }
 export async function getPlaylistById(playlistId: string) {
-  const res = await api.get(`/api/content/playlists/${encodeURIComponent(playlistId)}`);
+  const res = await api.get(`/api/user/playlists/${encodeURIComponent(playlistId)}`);
   const data = res.data;
 
   return {
     ...data,
-    playlist: data?.playList ?? data?.playlist ?? data?.data ?? null,
+    playlist: data?.playlist ?? data?.data ?? null,
+  };
+}
+
+// Postman: POST /api/content/playlists { name }
+export async function createPlaylist(input: { name: string }) {
+  const res = await api.post('/api/user/playlist', input);
+  const data = res.data;
+  return {
+    ...data,
+    playlist: data?.playlist ?? data?.data ?? data?.result ?? null,
   };
 }
 
 // Postman: POST /api/content/playlists/add { playlistId, trackId }
 export async function addTrackToPlaylist(input: { playlistId: string; trackId: string }) {
-  const res = await api.post('/api/content/playlists/add', input);
+  const res = await api.post(`/api/user/playlists/${encodeURIComponent(input.playlistId)}/tracks`, {
+    trackId: input.trackId,
+  });
   return res.data;
 }
 
@@ -140,14 +149,18 @@ export async function removeTrackFromPlaylist(input: {
   playlistId: string;
   trackId: string;
 }) {
-  const res = await api.post('/api/content/playlists/remove-track', input);
+  const res = await api.delete(
+    `/api/user/playlists/${encodeURIComponent(input.playlistId)}/tracks/${encodeURIComponent(
+      input.trackId
+    )}`
+  );
   return res.data; // { success:true, playList:{...} }
 }
 
 // (Optional but used by Library earlier)
 // Postman: DELETE /api/content/playlists { playlistId }
 export async function deletePlaylist(input: { playlistId: string }) {
-  const res = await api.delete('/api/content/playlists', { data: input });
+  const res = await api.delete(`/api/user/playlists/${encodeURIComponent(input.playlistId)}`);
   return res.data;
 }
 

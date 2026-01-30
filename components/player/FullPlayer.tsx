@@ -9,6 +9,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { MoreMenu } from './MoreMenu';
 import { QueueModal } from './QueueModal';
 import AddToPlaylistModal from '../playlist/AddToPlaylist';
+import AuthorLink from "@/components/reusable/AuthorLink";
 
 interface FullPlayerProps {
   onClose: () => void;
@@ -47,9 +48,16 @@ export function FullPlayer({ onClose, onLyricsToggle }: FullPlayerProps) {
         <TouchableOpacity onPress={onClose}>
           <Ionicons name="chevron-back" size={32} color="white" />
         </TouchableOpacity>
-        <Text style={tw`text-white font-medium`}>
-          {currentSong.title} - {currentSong.author}
-        </Text>
+        <View style={tw`items-center`}>
+          <Text style={tw`text-white font-medium`} numberOfLines={1}>
+            {currentSong.title}
+          </Text>
+          <AuthorLink
+            name={currentSong.author}
+            style={tw`text-white text-xs opacity-80`}
+            numberOfLines={1}
+          />
+        </View>
         <TouchableOpacity onPress={() => setShowMore(true)}>
           <MaterialIcons name="more-vert" size={32} color="white" />
         </TouchableOpacity>

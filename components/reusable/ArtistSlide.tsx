@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, Dimensions, ImageBackground } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 import tw from "twrnc";
+import { getDiscover } from "@/services/content";
 
 const { width } = Dimensions.get("window");
 
@@ -49,8 +50,73 @@ const DEFAULT_FEATURED: FeaturedArtist[] = [
   },
 ];
 
+type ApiSong = {
+  _id?: string;
+  id?: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  author?: string;
+  artists?: string[];
+  trackImg?: string;
+  image?: string;
+  artworkUrl?: string;
+};
+
+const normalizeSongs = (payload: any): ApiSong[] => {
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data?.items)) return payload.data.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload)) return payload;
+  return [];
+};
+
+const toFeaturedSong = (song: ApiSong, fallbackIndex: number): FeaturedArtist => {
+  const name = song.title ?? song.name ?? `Song ${fallbackIndex + 1}`;
+  const description =
+    song.description ??
+    song.author ??
+    (Array.isArray(song.artists) ? song.artists.join(", ") : "New release");
+  const imageUri = song.trackImg ?? song.artworkUrl ?? song.image;
+  return {
+    id: String(song._id ?? song.id ?? name),
+    name,
+    description,
+    image: imageUri ? { uri: imageUri } : require("../../assets/images/artist-imageholder.png"),
+    descriptionImage: require("../../assets/images/artist-description.png"),
+    ctaLabel: "Play",
+  };
+};
+
 const ArtistProfileCard: React.FC<ArtistProfileCardProps> = ({ items, onPressItem }) => {
-  const data = useMemo(() => (items && items.length ? items.slice(0, 4) : DEFAULT_FEATURED), [items]);
+  const [remoteItems, setRemoteItems] = useState<FeaturedArtist[] | null>(null);
+
+  useEffect(() => {
+    if (items && items.length) return;
+    let mounted = true;
+
+    (async () => {
+      try {
+        const res = await getDiscover({ section: "new-releases", limit: 4, type: "song" });
+        const list = normalizeSongs(res)
+          .slice(0, 4)
+          .map((song, idx) => toFeaturedSong(song, idx));
+        if (mounted) setRemoteItems(list);
+      } catch {
+        if (mounted) setRemoteItems([]);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [items]);
+
+  const data = useMemo(() => {
+    if (items && items.length) return items.slice(0, 4);
+    if (remoteItems && remoteItems.length) return remoteItems;
+    return DEFAULT_FEATURED;
+  }, [items, remoteItems]);
 
   return (
     <Carousel

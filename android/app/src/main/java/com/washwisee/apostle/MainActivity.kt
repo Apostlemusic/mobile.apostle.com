@@ -1,4 +1,4 @@
-package com.apostle
+package com.washwisee.apostle
 
 import android.os.Build
 import android.os.Bundle

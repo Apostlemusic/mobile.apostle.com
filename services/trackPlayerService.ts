@@ -26,6 +26,7 @@ export async function initTrackPlayer() {
       android: {
         appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
       },
+      alwaysPauseOnInterruption: true,
       capabilities: [
         Capability.Play,
         Capability.Pause,
@@ -34,7 +35,15 @@ export async function initTrackPlayer() {
         Capability.SkipToPrevious,
         Capability.SeekTo,
       ],
-      compactCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext],
+      compactCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext, Capability.SkipToPrevious],
+      notificationCapabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.SkipToNext,
+        Capability.SkipToPrevious,
+        Capability.SeekTo,
+        Capability.Stop,
+      ],
     });
     initialized = true;
   }
@@ -60,11 +69,30 @@ export const playbackService = async () => {
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
   TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
   TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop());
+  TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {
+    if (typeof event.position === "number") {
+      TrackPlayer.seekTo(event.position);
+    }
+  });
   TrackPlayer.addEventListener(Event.RemoteNext, async () => {
     try { await TrackPlayer.skipToNext(); await TrackPlayer.play(); } catch {}
   });
   TrackPlayer.addEventListener(Event.RemotePrevious, async () => {
-    try { await TrackPlayer.skipToPrevious(); await TrackPlayer.play(); } catch {}
+    try {
+      const index = await TrackPlayer.getActiveTrackIndex();
+      if (index === 0 || index === null || index === undefined) {
+        await TrackPlayer.seekTo(0);
+        await TrackPlayer.play();
+        return;
+      }
+      await TrackPlayer.skipToPrevious();
+      await TrackPlayer.play();
+    } catch {
+      try {
+        await TrackPlayer.seekTo(0);
+        await TrackPlayer.play();
+      } catch {}
+    }
   });
 };
 

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayer } from '@/components/player/PlayerContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { followArtist, getArtistByName, emitArtistFollowChanged, onArtistFollowChanged } from '@/services/artist';
 import { getUserId } from '@/services/authStorage';
 
@@ -18,6 +19,7 @@ export default function ArtistPage() {
   const artistName = Array.isArray(id) ? id[0] : (id || '');
 
   const { playById } = usePlayer();
+  const { mode } = useTheme();
 
   const [artist, setArtist] = useState<any>(null);
   const [songs, setSongs] = useState<any[]>([]);
@@ -158,10 +160,10 @@ export default function ArtistPage() {
           />
           <View style={tw`absolute inset-0 bg-black/30`} />
           <TouchableOpacity
-            onPress={() => router.back()}
-            style={tw`absolute top-12 left-5 bg-white/70 dark:bg-black/50 p-2 rounded-full`}
+            onPress={() => router.push("/tabs/Search")}
+            style={tw`absolute top-12 left-5 p-2 rounded-full ${mode === "dark" ? "bg-white/80" : "bg-black/30"}`}
           >
-            <Ionicons name="chevron-back" size={24} color="black" />
+            <Ionicons name="chevron-back" size={24} color={mode === "dark" ? "#FFFFFF" : "#000000"} />
           </TouchableOpacity>
           <View style={tw`absolute bottom-4 left-5`}>  
             <Text style={tw`text-3xl font-bold text-white`}>{artist?.name || artistName || 'Artist'}</Text>

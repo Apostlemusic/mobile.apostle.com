@@ -16,6 +16,8 @@ import {
 import tw from "twrnc";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAudio } from "@/contexts/AudioContext";
+import { getSongById, getSongByTrackId } from "@/services/content";
+import AuthorLink from "@/components/reusable/AuthorLink";
 
 function htmlToPlainText(html: string): string {
   return html
@@ -26,6 +28,14 @@ function htmlToPlainText(html: string): string {
     .replace(/\u00A0/g, " ")
     .trim();
 }
+
+const isMongoId = (v?: string) => typeof v === "string" && /^[a-f0-9]{24}$/i.test(v);
+
+const extractLyrics = (payload: any): string | null => {
+  const raw = typeof payload?.lyrics === "string" ? payload.lyrics : "";
+  const text = raw ? htmlToPlainText(raw) : "";
+  return text && text.trim().length > 0 ? text : null;
+};
 
 interface LyricsPlayerProps {
   onClose: () => void;
@@ -46,23 +56,28 @@ export function LyricsPlayer({ onClose, onBack }: LyricsPlayerProps) {
 
   const [lyrics, setLyrics] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [lineStarts, setLineStarts] = useState<number[]>([]); // estimated start time (ms) for each line
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [lineLayouts, setLineLayouts] = useState<{ y: number; height: number }[]>(
-    []
-  );
-
   const scrollRef = useRef<ScrollView | null>(null);
   const contentContainerRef = useRef<View | null>(null);
-  const settleTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch lyrics (same approach as before)
   useEffect(() => {
     if (!currentSong) return;
 
-    const id = (currentSong as any).trackId || (currentSong as any).id || (currentSong as any)._id;
-    if (!id) {
+    const trackId = (currentSong as any).trackId as string | undefined;
+    const mongoId = isMongoId(trackId)
+      ? trackId
+      : ((currentSong as any).id as string | undefined) ||
+        ((currentSong as any)._id as string | undefined);
+
+    if (!trackId && !mongoId) {
       setLyrics(null);
+      return;
+    }
+
+    const directLyrics = extractLyrics(currentSong as any);
+    if (directLyrics) {
+      setLyrics(directLyrics);
+      setLoading(false);
       return;
     }
 
@@ -71,14 +86,22 @@ export function LyricsPlayer({ onClose, onBack }: LyricsPlayerProps) {
 
     (async () => {
       try {
-        const res = await fetch(`https://apostle.onrender.com/api/song/getASongs/${id}`);
-        if (!res.ok) throw new Error("fetch failed");
-        const json = await res.json();
-        const s = json?.data ?? json;
-        const raw = typeof s?.lyrics === "string" ? s.lyrics : undefined;
-        const text = raw ? htmlToPlainText(raw) : null;
-        if (mounted) setLyrics(text ?? null);
-      } catch (e) {
+        let nextLyrics: string | null = null;
+
+        if (mongoId) {
+          const res = await getSongById(String(mongoId));
+          const s = res?.song ?? res?.data ?? res;
+          nextLyrics = extractLyrics(s);
+        }
+
+        if (!nextLyrics && trackId && !isMongoId(trackId)) {
+          const fallback = await getSongByTrackId(String(trackId));
+          const s = fallback?.song ?? fallback?.data ?? fallback;
+          nextLyrics = extractLyrics(s);
+        }
+
+        if (mounted) setLyrics(nextLyrics);
+      } catch {
         if (mounted) setLyrics(null);
       } finally {
         if (mounted) setLoading(false);
@@ -90,92 +113,6 @@ export function LyricsPlayer({ onClose, onBack }: LyricsPlayerProps) {
     };
   }, [currentSong]);
 
-  // Build lineStarts (estimated) whenever lyrics or duration changes
-  useEffect(() => {
-    if (!lyrics) {
-      setLineStarts([]);
-      return;
-    }
-
-    // Split into non-empty lines
-    const rawLines = lyrics.split("\n").map(l => l.trim());
-    const lines = rawLines.filter(l => l.length > 0);
-    if (lines.length === 0 || !duration || duration <= 0) {
-      // fallback: evenly spaced 1s increments if no duration
-      const fallback = lines.map((_, i) => i * 1000);
-      setLineStarts(fallback);
-      return;
-    }
-
-    // Estimate: distribute song duration across lines proportionally
-    const total = lines.length;
-    const starts = lines.map((_, i) => Math.floor((i / total) * duration));
-    setLineStarts(starts);
-  }, [lyrics, duration]);
-
-  // Determine active line from progress -> using lineStarts
-  useEffect(() => {
-    if (!lineStarts || lineStarts.length === 0) {
-      setActiveIndex(0);
-      return;
-    }
-    // progress may be undefined; default 0
-    const current = Math.max(0, progress || 0);
-
-    // find last index where lineStart <= current
-    let idx = 0;
-    for (let i = 0; i < lineStarts.length; i++) {
-      if (current >= lineStarts[i]) idx = i;
-      else break;
-    }
-    // clamp
-    idx = Math.min(idx, lineStarts.length - 1);
-    if (idx !== activeIndex) setActiveIndex(idx);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress, lineStarts]);
-
-  // Scroll to keep activeIndex centered (or nicely placed)
-  useEffect(() => {
-    if (!scrollRef.current || lineLayouts.length === 0 || !lineStarts.length) return;
-
-    const idx = activeIndex;
-    const layout = lineLayouts[idx];
-    if (!layout) return;
-
-    // compute target y to center the active line in the ScrollView viewport
-    // we need to know ScrollView height: assume window height minus paddings.
-    // Simpler approach: scroll so that line is roughly 1/3 from top to match screenshot feel
-    // We'll approximate viewportHeight by measuring available space; but to keep things simple we use a constant fraction.
-    const viewportFraction = 0.38; // place active line ~38% from top
-    // try to get scrollView height by measuring the content container available height.
-    // We'll fallback to 400 if unknown.
-    // For improved precision you can measure with onLayout on the ScrollView wrapper.
-    const viewportHeight = (Platform.OS === "web" ? 700 : 520); // heuristic fallback
-    const targetY = Math.max(0, layout.y - viewportHeight * viewportFraction + layout.height / 2);
-
-    // small debounce to avoid jitter
-    if (settleTimer.current) clearTimeout(settleTimer.current);
-    settleTimer.current = setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: targetY, animated: true });
-    }, 80);
-
-    return () => {
-      if (settleTimer.current) {
-        clearTimeout(settleTimer.current);
-        settleTimer.current = null;
-      }
-    };
-  }, [activeIndex, lineLayouts, lineStarts]);
-
-  // Helpers to handle layout of each line
-  const handleLineLayout = (index: number) => (e: LayoutChangeEvent) => {
-    const { y, height } = e.nativeEvent.layout;
-    setLineLayouts(prev => {
-      const copy = [...prev];
-      copy[index] = { y, height };
-      return copy;
-    });
-  };
 
   if (!currentSong) return null;
 
@@ -191,11 +128,7 @@ export function LyricsPlayer({ onClose, onBack }: LyricsPlayerProps) {
     ? renderedLyrics.split("\n").map(l => l.trim()).filter(l => l.length > 0)
     : [];
 
-  // Styles for active vs inactive lines
-  const lineStyle = (i: number) =>
-    i === activeIndex
-      ? tw`text-white text-[34px] font-extrabold text-center leading-10 my-4`
-      : tw`text-white text-[20px] font-semibold text-center opacity-60 leading-8 my-3`;
+  const lineStyle = tw`text-white text-[20px] font-semibold text-center leading-8 my-3`;
 
   return (
     <ImageBackground source={{ uri: songImage }} blurRadius={36} style={tw`flex-1 p-4 pt-10 pb-7`}>
@@ -251,16 +184,11 @@ export function LyricsPlayer({ onClose, onBack }: LyricsPlayerProps) {
             <Text style={tw`text-white opacity-70 mt-3`}>Fetching lyrics…</Text>
           </View>
         ) : displayLines.length > 0 ? (
-          <View
-            // a wrapper so line layouts are measured relative to this container
-            ref={contentContainerRef as any}
-          >
+          <View ref={contentContainerRef as any}>
             {displayLines.map((line, i) => (
-              <View key={i} onLayout={handleLineLayout(i)}>
-                <Text style={lineStyle(i)}>
-                  {line}
-                </Text>
-              </View>
+              <Text key={i} style={lineStyle}>
+                {line}
+              </Text>
             ))}
             {/* small spacer to allow last line to center */}
             <View style={tw`h-40`} />
@@ -314,9 +242,11 @@ export function LyricsPlayer({ onClose, onBack }: LyricsPlayerProps) {
               <Text style={tw`text-white font-semibold text-base`} numberOfLines={1}>
                 {songTitle}
               </Text>
-              <Text style={tw`text-white text-xs opacity-80`} numberOfLines={1}>
-                {songAuthor}
-              </Text>
+              <AuthorLink
+                name={songAuthor}
+                style={tw`text-white text-xs opacity-80`}
+                numberOfLines={1}
+              />
             </View>
 
             <View style={tw`items-center`}>

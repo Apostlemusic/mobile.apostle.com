@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  Pressable,
 } from "react-native";
 import tw from "twrnc";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,12 +17,12 @@ import { Playlist } from "@/constants/Types";
 import { Swipeable } from "react-native-gesture-handler";
 import { useAudio } from "@/contexts/AudioContext";
 import {
+  createPlaylist as apiCreatePlaylist,
   deletePlaylist as apiDeletePlaylist,
   getLikedSongs as apiGetLikedSongs,
   getUserPlaylists as apiGetUserPlaylists,
   onLikedUpdated,
 } from "@/services/content";
-import * as contentApi from "@/services/content";
 
 const Library: React.FC = () => {
   const router = useRouter();
@@ -103,9 +104,16 @@ const Library: React.FC = () => {
       setCreating(true);
 
       // ✅ Auth-based: POST /api/content/playlists
-      await (contentApi as any).createPlaylist({ name });
+      console.log("[Library] createPlaylist", { name });
+      const result = await apiCreatePlaylist({ name });
+      console.log("[Library] createPlaylist response", result);
 
-      await fetchPlaylists();
+      const created = result?.playlist;
+      if (created) {
+        setPlaylists((prev) => [created, ...prev]);
+      } else {
+        await fetchPlaylists();
+      }
       setShowAdd(false);
       setNewPlaylistName("");
     } catch (e: any) {
@@ -323,12 +331,14 @@ const Library: React.FC = () => {
         animationType="fade"
         onRequestClose={() => setShowAdd(false)}
       >
-        <TouchableOpacity
+        <Pressable
           style={tw`flex-1 bg-black/30 dark:bg-black/60`}
-          activeOpacity={1}
           onPress={() => setShowAdd(false)}
         >
-          <View style={tw`absolute left-4 right-4 top-[25%] bg-white dark:bg-[#14141b] rounded-2xl p-5`}>
+          <View
+            style={tw`absolute left-4 right-4 top-[25%] bg-white dark:bg-[#14141b] rounded-2xl p-5`}
+            onStartShouldSetResponder={() => true}
+          >
             <Text style={[tw`text-black dark:text-gray-100 mb-3`, { fontSize: 18, fontWeight: "800" }]}> 
               Create Playlist
             </Text>
@@ -363,7 +373,7 @@ const Library: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </Modal>
     </View>
   );

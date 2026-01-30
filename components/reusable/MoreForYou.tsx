@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import tw from "twrnc";
+import AuthorLink from "@/components/reusable/AuthorLink";
 import { usePlayer } from "../player/PlayerContext";
 import { useRouter } from "expo-router";
 
@@ -135,12 +136,11 @@ const UnifiedSection = ({
                   {t.title ?? t.name ?? " "}
                 </Text>
                 <View style={tw`w-full flex-row justify-between items-end mt-2`}>
-                  <Text
+                  <AuthorLink
+                    name={t.author || t.artist || ""}
                     style={tw`text-white/90 text-[13px] font-semibold tracking-wide text-right w-full align-middle`}
                     numberOfLines={2}
-                  >
-                    {t.author || t.artist || " "}
-                  </Text>
+                  />
                 </View>
               </ImageBackground>
             </TouchableOpacity>
@@ -256,7 +256,7 @@ export default function MoreForYou() {
 
   return (
     <ScrollView
-      style={tw`flex-1 bg-white dark:bg-[#0b0b10] pb-24`}
+      style={tw`flex-1 bg-white dark:bg-[#0b0b10] pb-5`}
       showsVerticalScrollIndicator={false}
       overScrollMode="never"
     >
@@ -271,8 +271,6 @@ export default function MoreForYou() {
       {renderSection("Liked Songs", "song", liked, likedLoading)}
       {renderSection("Categories", "category", categories, categoriesLoading)}
       {renderSection("Genres", "genre", genres, genresLoading)}
-
-      <View style={tw`h-8`} />
     </ScrollView>
   );
 }

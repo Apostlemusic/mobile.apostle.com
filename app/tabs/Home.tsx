@@ -13,7 +13,6 @@ const Index = () => {
       <ScrollView style={tw`bg-gray-50 dark:bg-[#0b0b10] h-[100%] w-full`}>
         <MusicHome />
         <MoreForYou />
-        {/* <View style={tw`h-20`} />  Spacer to avoid content being hidden behind Miniplayer */}
       </ScrollView>
     </SongProvider>
   );

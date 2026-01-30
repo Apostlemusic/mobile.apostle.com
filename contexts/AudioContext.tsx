@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
+import { AppState } from "react-native";
 import TrackPlayer, {
   State,
   Event,
@@ -8,6 +9,13 @@ import TrackPlayer, {
   RepeatMode,
   Track,
 } from "react-native-track-player";
+import {
+  getCategoryBySlug,
+  getGenreBySlug,
+  getSongById,
+  getSongByTrackId,
+  unwrapArray,
+} from "@/services/content";
 
 interface Song {
   trackId: string;
@@ -15,6 +23,8 @@ interface Song {
   title: string;
   trackImg: string;
   author: string;
+  genre?: string;
+  category?: string;
 }
 
 interface AudioContextType {
@@ -23,7 +33,7 @@ interface AudioContextType {
   progress: number;
   duration: number;
   isShuffle: boolean;
-  isRepeat: boolean;
+  repeatMode: "off" | "track" | "queue";
   playingTrackId: string | null;
   queue: Song[];
   playPauseSong: (song: Song) => void;
@@ -57,9 +67,13 @@ interface AudioProviderProps {
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isShuffle, setIsShuffle] = useState(false);
-  const [isRepeat, setIsRepeat] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<"off" | "track" | "queue">("off");
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   const [queue, setQueue] = useState<Song[]>([]);
+  const autoFillInFlightRef = useRef(false);
+  const lastAutoFillTrackRef = useRef<string | null>(null);
+  const currentSongRef = useRef<Song | null>(null);
+  const repeatModeRef = useRef<"off" | "track" | "queue">("off");
 
   // Use TrackPlayer hooks
   const playbackState = usePlaybackState();
@@ -69,6 +83,78 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const isPlaying = playbackState.state === State.Playing;
   const progress = position * 1000; // Convert to milliseconds
   const trackDuration = duration * 1000; // Convert to milliseconds
+
+  const isMongoId = (v?: string) => typeof v === "string" && /^[a-f0-9]{24}$/i.test(v);
+  const toSlug = (v?: string) =>
+    String(v ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+  const normalizeApiSong = (payload: any) => payload?.song ?? payload?.data ?? payload;
+
+  const mapApiSongToTrack = (item: any): Track | null => {
+    const id = String(item?._id ?? item?.trackId ?? item?.id ?? "").trim();
+    const url =
+      item?.trackUrl || item?.url || item?.audioUrl || item?.previewUrl || item?.streamUrl;
+    if (!id || !url) return null;
+    return {
+      id,
+      url,
+      title: item?.title ?? item?.name ?? "Untitled",
+      artist:
+        item?.author ??
+        item?.artist ??
+        (Array.isArray(item?.artists) ? item.artists.join(", ") : "Unknown Artist"),
+      artwork: item?.trackImg ?? item?.artworkUrl ?? item?.image,
+    } as Track;
+  };
+
+  const resolveSimilarTracks = async (song: Song, existingIds: Set<string>) => {
+    const songData = isMongoId(song.trackId)
+      ? await getSongById(song.trackId)
+      : await getSongByTrackId(song.trackId);
+    const full = normalizeApiSong(songData);
+
+    const genreSlug =
+      full?.genreSlug ??
+      full?.genre?.slug ??
+      full?.genres?.[0]?.slug ??
+      toSlug(full?.genre ?? full?.genres?.[0]?.name ?? full?.genres?.[0]);
+
+    const categorySlug =
+      full?.categorySlug ??
+      full?.category?.slug ??
+      full?.categories?.[0]?.slug ??
+      toSlug(full?.category ?? full?.categories?.[0]?.name ?? full?.categories?.[0]);
+
+    let similar: any[] = [];
+
+    if (genreSlug) {
+      const res = await getGenreBySlug(genreSlug);
+      similar = unwrapArray(res);
+    }
+
+    if (similar.length === 0 && categorySlug) {
+      const res = await getCategoryBySlug(categorySlug);
+      similar = unwrapArray(res);
+    }
+
+    return similar
+      .map(mapApiSongToTrack)
+      .filter((t): t is Track => Boolean(t))
+      .filter((t) => !existingIds.has(String(t.id)))
+      .filter((t) => String(t.id) !== String(song.trackId));
+  };
+
+  useEffect(() => {
+    currentSongRef.current = currentSong;
+  }, [currentSong]);
+
+  useEffect(() => {
+    repeatModeRef.current = repeatMode;
+  }, [repeatMode]);
 
   useEffect(() => {
     // Listen for track changes
@@ -92,7 +178,36 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     );
 
     const queueListener = TrackPlayer.addEventListener(Event.PlaybackQueueEnded, async () => {
-      refreshQueue();
+      try {
+        await refreshQueue();
+
+        const latestSong = currentSongRef.current;
+        if (!latestSong || repeatModeRef.current !== "off" || autoFillInFlightRef.current) return;
+
+        if (lastAutoFillTrackRef.current === latestSong.trackId) return;
+
+        autoFillInFlightRef.current = true;
+
+        const existingQueue = await TrackPlayer.getQueue();
+        const existingIds = new Set(existingQueue.map((t) => String(t.id)));
+
+        const similarTracks = await resolveSimilarTracks(latestSong, existingIds);
+
+        if (similarTracks.length === 0) return;
+
+        const insertAt = existingQueue.length;
+        await TrackPlayer.add(similarTracks);
+        await refreshQueue();
+
+        await TrackPlayer.skip(insertAt);
+        await TrackPlayer.play();
+
+        lastAutoFillTrackRef.current = latestSong.trackId;
+      } catch (e) {
+        console.log("Error auto-filling queue", e);
+      } finally {
+        autoFillInFlightRef.current = false;
+      }
     });
 
     refreshQueue();
@@ -100,6 +215,39 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     return () => {
       trackChangedListener.remove();
       queueListener.remove();
+    };
+  }, []);
+
+  const hydrateFromTrackPlayer = async () => {
+    try {
+      const track = await TrackPlayer.getActiveTrack();
+      if (track) {
+        setCurrentSong({
+          trackId: track.id as string,
+          title: track.title || "Unknown",
+          author: track.artist || "Unknown Artist",
+          trackImg: track.artwork as string,
+          trackUrl: track.url as string,
+        });
+        setPlayingTrackId(track.id as string);
+      }
+      await refreshQueue();
+    } catch (e) {
+      console.log("Error hydrating player state", e);
+    }
+  };
+
+  useEffect(() => {
+    hydrateFromTrackPlayer();
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        hydrateFromTrackPlayer();
+      }
+    });
+
+    return () => {
+      sub.remove();
     };
   }, []);
   const refreshQueue = async () => {
@@ -259,10 +407,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
   const toggleRepeat = async () => {
     try {
-      const newRepeatState = !isRepeat;
-      setIsRepeat(newRepeatState);
+      const nextMode = repeatMode === "off" ? "track" : repeatMode === "track" ? "queue" : "off";
+      setRepeatMode(nextMode);
       await TrackPlayer.setRepeatMode(
-        newRepeatState ? RepeatMode.Track : RepeatMode.Off
+        nextMode === "track" ? RepeatMode.Track : nextMode === "queue" ? RepeatMode.Queue : RepeatMode.Off
       );
     } catch (error) {
       console.error("Error toggling repeat:", error);
@@ -284,7 +432,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         progress,
         duration: trackDuration,
         isShuffle,
-        isRepeat,
+        repeatMode,
         playingTrackId,
         queue,
         setCurrentSong,

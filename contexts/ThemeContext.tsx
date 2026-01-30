@@ -95,7 +95,12 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleMode = () => {
-    setMode(mode === "light" ? "dark" : "light");
+    setModeState((prev) => {
+      const nextMode = prev === "light" ? "dark" : "light";
+      applyTwScheme(nextMode);
+      AsyncStorage.setItem(THEME_STORAGE_KEY, nextMode).catch(() => null);
+      return nextMode;
+    });
   };
 
   const colors = useMemo(() => (mode === "dark" ? darkColors : lightColors), [mode]);

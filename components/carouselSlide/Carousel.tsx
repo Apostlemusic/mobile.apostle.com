@@ -16,6 +16,7 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { usePlayer } from "../player/PlayerContext";
 import { getDiscover } from "@/services/content";
+import AuthorLink from "@/components/reusable/AuthorLink";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -33,9 +34,11 @@ const renderCarouselItem = ({ item }: { item: GlobalTrack }) => {
         style={tw`w-[210px] h-[320px] overflow-hidden absolute top-0 z-10 p-3`}
         imageStyle={{ borderBottomLeftRadius: 50, borderTopRightRadius: 50 }}
       >
-        <Text style={tw`text-white text-base font-semibold mb-1 w-1/2`} numberOfLines={1}>
-          {item.author || item.artist || "Unknown Artist"}
-        </Text>
+        <AuthorLink
+          name={item.author || item.artist || ""}
+          style={tw`text-white text-base font-semibold mb-1 w-1/2`}
+          numberOfLines={1}
+        />
         <Text
           style={tw`text-black dark:text-gray-100 text-lg font-semibold absolute bottom-3 right-2 w-1/2 text-center`}
           numberOfLines={2}
@@ -60,9 +63,16 @@ const renderNewRelease = ({ item }: { item: GlobalTrack }) => {
           <Text style={tw`text-base font-semibold text-black dark:text-gray-100`} numberOfLines={1}>
             Title: {item.title}
           </Text>
-          <Text style={tw`text-sm text-[#000] dark:text-gray-100`} numberOfLines={1}>
-            Artist: {item.author || item.artist}
-          </Text>
+          <View style={tw`flex-row items-center`}>
+            <Text style={tw`text-sm text-[#000] dark:text-gray-100`} numberOfLines={1}>
+              Artist:
+            </Text>
+            <AuthorLink
+              name={item.author || item.artist || ""}
+              style={tw`text-sm text-[#000] dark:text-gray-100 ml-1`}
+              numberOfLines={1}
+            />
+          </View>
           <View style={tw`flex-row gap-2 mt-2 justify-between items-center`}>
             <Text style={tw`text-xs text-[#000] dark:text-gray-100`} numberOfLines={1}>
               Type: Song

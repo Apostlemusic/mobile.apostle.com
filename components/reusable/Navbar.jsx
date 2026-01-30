@@ -12,9 +12,11 @@ import Entypo from "@expo/vector-icons/Entypo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Svg, { Path } from "react-native-svg"; // Import Svg and Path
 import tw from "twrnc";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const NavigationBar = () => {
   const pathname = usePathname();
+  const { mode } = useTheme();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -42,7 +44,7 @@ const NavigationBar = () => {
         <Entypo
           name="home"
           size={27}
-          color={pathname === "/Pages/Home" ? "#FFFFFF" : "#FFFFFF"}
+          color={mode === "dark" ? "#FFFFFF" : "#000000"}
         />
       ),
       path: "/Pages/Home",
@@ -53,7 +55,7 @@ const NavigationBar = () => {
         <AntDesign
           name="search1"
           size={27}
-          color={pathname === "/Pages/Search" ? "#FFFFFF" : "#FFFFFF"}
+          color={mode === "dark" ? "#FFFFFF" : "#000000"}
         />
       ),
       path: "/Pages/Search",
@@ -70,7 +72,7 @@ const NavigationBar = () => {
         >
           <Path
             d="M17.2064 1.23726L29.25 28.2847L27.8526 28.9099L15.8091 1.86243L17.2064 1.23726ZM0.75 28.8915V1.09015H2.29457V28.8915H0.75ZM10.0171 28.8915V1.09015H11.5617V28.8915H10.0171Z"
-            fill="white"
+            fill={mode === "dark" ? "#FFFFFF" : "#000000"}
           />
         </Svg>
       ),

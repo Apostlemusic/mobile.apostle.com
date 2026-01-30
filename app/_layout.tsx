@@ -3,11 +3,15 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack } from "expo-router";
 import { PlayerProvider } from "@/components/player/PlayerContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { View, Platform, StatusBar as RNStatusBar } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useTheme } from "@/contexts/ThemeContext";
 import Toast from "react-native-toast-message";
+import TrackPlayer from "react-native-track-player";
+import { playbackService } from "@/services/trackPlayerService";
+
+TrackPlayer.registerPlaybackService(() => playbackService);
 
 const ThemedRoot = () => {
   const { colors, mode } = useTheme();
@@ -18,7 +22,7 @@ const ThemedRoot = () => {
       style={{
         flex: 1,
         backgroundColor: colors.background,
-        paddingTop: Platform.OS === "android" ? RNStatusBar.currentHeight ?? 0 : 0,
+        paddingTop: 0,
       }}
     >
       <StatusBar style={mode === "dark" ? "light" : "dark"} />

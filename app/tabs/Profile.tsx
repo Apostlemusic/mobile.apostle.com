@@ -8,19 +8,22 @@ import {
   Animated,
   Pressable,
   useWindowDimensions,
+  ScrollView,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import tw from "twrnc";
 import { useRouter } from "expo-router";
 import { logout } from "@/services/auth";
-import { getAuthInvalid } from "@/lib/auth/tokens";
+import { getAuthInvalid, setAuthInvalid as setAuthInvalidFlag } from "@/lib/auth/tokens";
 import { getMyProfile } from "@/services/users";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { colors, mode, toggleMode } = useTheme();
+  const { colors, mode, setMode } = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const sidebarWidth = Math.min(320, Math.round(width * 0.82));
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -58,9 +61,19 @@ export default function SettingsScreen() {
         setProfileError(null);
         const data = await getMyProfile();
         if (!isMounted) return;
-        setUser(data?.user ?? null);
+        const nextUser = data?.user ?? null;
+        setUser(nextUser);
+        if (nextUser) {
+          setAuthInvalidFlag(false);
+          setAuthInvalid(false);
+        }
       } catch (error) {
         if (!isMounted) return;
+        const status = (error as any)?.response?.status;
+        if (status === 401 || status === 403) {
+          setAuthInvalidFlag(true);
+          setAuthInvalid(true);
+        }
         setProfileError("Unable to load profile");
       } finally {
         if (!isMounted) return;
@@ -119,11 +132,12 @@ export default function SettingsScreen() {
 
   const sidebarTranslateX = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [sidebarWidth, 0],
+    outputRange: [-sidebarWidth, 0],
   });
 
   return (
-    <View style={[tw`flex-1`, { backgroundColor: colors.background }]}>
+    <>
+    <ScrollView style={[tw`flex-1`, { backgroundColor: colors.background }]} overScrollMode="never">
       {/* Header */}
       <View
         style={[
@@ -258,19 +272,22 @@ export default function SettingsScreen() {
           style={[tw`absolute inset-0`, { backgroundColor: colors.overlay }]}
         />
       )}
+    </ScrollView>
+    
 
       {/* Sliding sidebar */}
-      <Animated.View
+      <Animated.ScrollView
         style={[
-          tw`absolute top-0 bottom-0 right-0 shadow-xl`,
+          tw`absolute top-0 bottom-0 left-0 shadow-xl pb-2`,
           {
             width: sidebarWidth,
             backgroundColor: colors.card,
-            borderLeftWidth: 1,
-            borderLeftColor: colors.border,
+            borderRightWidth: 1,
+            borderRightColor: colors.border,
             transform: [{ translateX: sidebarTranslateX }],
           },
         ]}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 14 }}
       >
         <View style={tw`flex-1 px-5 py-6`}>
           <View style={tw`flex-row justify-between items-center mb-4`}>
@@ -298,10 +315,6 @@ export default function SettingsScreen() {
           <View style={[tw`rounded-xl p-4 mb-4`, { backgroundColor: colors.background }]}>
             <Text style={[tw`text-base font-semibold mb-2`, { color: colors.text }]}>Status</Text>
             <View style={tw`flex-row justify-between items-center mb-2`}>
-              <Text style={[tw`text-sm`, { color: colors.subtext }]}>Role</Text>
-              <Text style={[tw`text-base`, { color: colors.text }]}>{displayRole}</Text>
-            </View>
-            <View style={tw`flex-row justify-between items-center mb-2`}>
               <Text style={[tw`text-sm`, { color: colors.subtext }]}>Verified</Text>
               <Text style={[tw`text-base`, { color: colors.text }]}>{displayVerified}</Text>
             </View>
@@ -311,7 +324,7 @@ export default function SettingsScreen() {
             </View>
             <View style={tw`flex-row justify-between items-center`}>
               <Text style={[tw`text-sm`, { color: colors.subtext }]}>Member since</Text>
-              <Text style={[tw`text-base`, { color: colors.text }]}>{displayCreatedAt || "—"}</Text>
+              <Text style={[tw`text-sm`, { color: colors.text }]}>{displayCreatedAt || "—"}</Text>
             </View>
           </View>
 
@@ -324,7 +337,7 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={mode === "dark"}
-                onValueChange={toggleMode}
+                onValueChange={(value) => setMode(value ? "dark" : "light")}
                 trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={mode === "dark" ? "#fff" : colors.muted}
               />
@@ -355,7 +368,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
         </View>
-      </Animated.View>
-    </View>
+      </Animated.ScrollView>
+    </>
   );
 }

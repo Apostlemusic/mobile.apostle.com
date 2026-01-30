@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "apostle",
-    "slug": "apostle",
+    "name": "apostles",
+    "slug": "apostles",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/Apostle-Logo.png",
@@ -18,7 +18,7 @@
       "bundleIdentifier": "com.washwisee.apostle"
     },
     "android": {
-      "icon": "./assets/images/Apostle-Logo.png",
+      "icon": "./assets/images/Apostle-Logo-sm.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Apostle-Logo.png",
         "backgroundColor": "#ffffff"

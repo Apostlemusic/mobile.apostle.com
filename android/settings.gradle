@@ -44,7 +44,7 @@ if (getRNMinorVersion() >= 75) {
   }
 }
 
-rootProject.name = 'apostle'
+rootProject.name = 'apostles'
 
 dependencyResolutionManagement {
   versionCatalogs {

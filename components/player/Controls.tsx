@@ -4,9 +4,11 @@ import tw from "twrnc";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import TrackPlayer, { State } from "react-native-track-player";
 import { usePlayer } from "./PlayerContext";
+import { useAudio } from "@/contexts/AudioContext";
 
 export function Controls() {
   const { playPauseToggle, next, previous } = usePlayer();
+  const { toggleRepeat, repeatMode } = useAudio();
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -54,8 +56,12 @@ export function Controls() {
         <Ionicons name="play-skip-forward" size={32} color="white" />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => { /* TODO: add repeat */ }}>
-        <MaterialIcons name="repeat" size={28} color={"white"} />
+      <TouchableOpacity onPress={toggleRepeat}>
+        <MaterialIcons
+          name={repeatMode === "track" ? "repeat-one" : "repeat"}
+          size={28}
+          color={repeatMode === "off" ? "white" : "#00c2ff"}
+        />
       </TouchableOpacity>
     </View>
   );

@@ -19,6 +19,7 @@ import { useRouter } from "expo-router";
 import ArtistProfileCard from "@/components/reusable/ArtistSlide";
 import TopHitsThisWeek from "@/components/reusable/HotAlbums";
 import Search from "@/components/icon/Search";
+import AuthorLink from "@/components/reusable/AuthorLink";
 
 // Context
 import { SongProvider } from "@/contexts/SongContext";
@@ -213,7 +214,7 @@ const Index = () => {
                 <TextInput
                   placeholder="Search keywords"
                   placeholderTextColor="gray"
-                  style={tw`text-base flex-1 text-black dark:text-gray-100`}
+                  style={tw`text-base flex-1 text-black dark:text-gray-100 bg-transparent`}
                   value={search}
                   onChangeText={setSearch}
                   returnKeyType="search"
@@ -317,12 +318,11 @@ const Index = () => {
                                   >
                                     {item?.title ?? ""}
                                   </Text>
-                                  <Text
+                                  <AuthorLink
+                                    name={item?.author ?? item?.artists?.join(", ") ?? ""}
                                     style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 12 }]}
                                     numberOfLines={1}
-                                  >
-                                    {item?.author ?? item?.artists?.join(", ") ?? ""}
-                                  </Text>
+                                  />
                                 </View>
                               </TouchableOpacity>
                             );

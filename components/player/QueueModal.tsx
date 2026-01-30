@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 import { useAudio } from '@/contexts/AudioContext';
 import { Ionicons } from '@expo/vector-icons';
+import AuthorLink from '@/components/reusable/AuthorLink';
 
 interface QueueModalProps {
   visible: boolean;
@@ -28,7 +29,11 @@ export const QueueModal: React.FC<QueueModalProps> = ({ visible, onClose }) => {
             <Image source={{ uri: currentSong.trackImg }} style={tw`w-14 h-14 rounded-xl`} />
             <View style={tw`ml-3 flex-1`}>
               <Text style={tw`font-semibold text-black dark:text-gray-100`} numberOfLines={1}>{currentSong.title}</Text>
-              <Text style={tw`text-gray-500 dark:text-gray-400 text-sm`} numberOfLines={1}>{currentSong.author}</Text>
+              <AuthorLink
+                name={currentSong.author}
+                style={tw`text-gray-500 dark:text-gray-400 text-sm`}
+                numberOfLines={1}
+              />
             </View>
           </View>
         )}
@@ -48,7 +53,11 @@ export const QueueModal: React.FC<QueueModalProps> = ({ visible, onClose }) => {
                   <Image source={{ uri: item.trackImg }} style={tw`w-12 h-12 rounded-xl`} />
                   <View style={tw`ml-3 w-48`}>
                     <Text style={tw`font-semibold text-black dark:text-gray-100`} numberOfLines={1}>{item.title}</Text>
-                    <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>{item.author}</Text>
+                    <AuthorLink
+                      name={item.author}
+                      style={tw`text-gray-500 dark:text-gray-400 text-xs`}
+                      numberOfLines={1}
+                    />
                   </View>
                 </View>
                 <View style={tw`flex-row items-center gap-4`}>

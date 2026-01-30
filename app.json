@@ -38,11 +38,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "eas": {
-        "projectId": "abe3940d-e3dd-4a0a-a716-7cd04e92d3a2"
-      },
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "ad46768b-04cb-4737-aa78-2a0075d4b030"
       }
     },
     "owner": "steph4n"

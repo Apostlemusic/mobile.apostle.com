@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { View, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, TouchableOpacity, Platform, Keyboard } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Tabs, useRouter, usePathname } from "expo-router";
 import MiniPlayer from "@/components/musicPlayer/Miniplayer";
@@ -17,20 +17,35 @@ import Search from "@/components/icon/Search";
 import BurstActive from "@/components/icon/BurstActive";
 import Burst from "@/components/icon/Burst";
 
-// SVG imports
-
 const Layout = () => {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { mode } = useTheme();
 
-  const TAB_BAR_HEIGHT = 72;
-  const MINI_PLAYER_HEIGHT = 96;
-  const EXTRA_BOTTOM_PADDING = 140;
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const hideSubscription = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const activeColor = mode === "dark" ? "#FFFFFF" : "#000000";
-  const inactiveColor = mode === "dark" ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.6)";
+  const inactiveColor =
+    mode === "dark"
+      ? "rgba(255,255,255,0.75)"
+      : "rgba(0,0,0,0.6)";
 
   const Links = [
     {
@@ -61,15 +76,9 @@ const Layout = () => {
         <PlayerProvider>
           <SafeAreaView
             edges={["left", "right", "bottom"]}
-            style={[
-              tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`,
-              { paddingBottom: insets.bottom + EXTRA_BOTTOM_PADDING },
-            ]}
+            style={tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "android" ? "padding" : "height"}
-              style={tw`flex-1`}
-            >
+            <View style={{ flex: 1 }}>
               <Tabs
                 screenOptions={{
                   headerShown: false,
@@ -81,28 +90,32 @@ const Layout = () => {
                 <Tabs.Screen name="Library" />
                 <Tabs.Screen name="Profile" />
               </Tabs>
-            </KeyboardAvoidingView>
+
+              {!isKeyboardVisible && <MiniPlayer />}
+            </View>
+
+            {!isKeyboardVisible && (
+              <View
+                style={[
+                  tw`absolute left-0 right-0 bg-[#CCCCCC] dark:bg-[#14141b] px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl`,
+                  { bottom: insets.bottom },
+                ]}
+              >
+                {Links.map((link, index) => {
+                  const isActive = pathname === link.path;
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={tw`flex-row items-center px-5 py-1`}
+                      onPress={() => router.push(link.path as any)}
+                    >
+                      {isActive ? link.activeIcon : link.inactiveIcon}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </SafeAreaView>
-
-          <MiniPlayer />
-
-          {/* Custom Bottom Navigation */}
-          <View
-            style={tw`absolute bottom-0 left-0 right-0 bg-[#CCCCCC] dark:bg-[#14141b] px-6 py-5 shadow-lg flex-row justify-between items-center rounded-t-3xl shadow-black`}
-          >
-            {Links.map((link, index) => {
-              const isActive = pathname === link.path;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={tw`flex-row items-center px-5 py-1`}
-                  onPress={() => router.push(link.path as any)}
-                >
-                  {isActive ? link.activeIcon : link.inactiveIcon}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
         </PlayerProvider>
       </AudioProvider>
     </SongProvider>

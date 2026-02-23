@@ -111,6 +111,7 @@ export default function ArtistPage() {
     id: isMongoId(s._id) ? s._id : undefined,
     title: s.title,
     plays: '— plays',
+    listensCount: s.listensCount,
     cover: { uri: s.trackImg || 'https://via.placeholder.com/60' },
     trackUrl: s.trackUrl || '',
     author: s.author
@@ -165,7 +166,7 @@ export default function ArtistPage() {
           >
             <Ionicons name="chevron-back" size={24} color={mode === "dark" ? "#FFFFFF" : "#000000"} />
           </TouchableOpacity>
-          <View style={tw`absolute bottom-4 left-5`}>  
+          <View style={tw`absolute bottom-4 left-5`}>
             <Text style={tw`text-3xl font-bold text-white`}>{artist?.name || artistName || 'Artist'}</Text>
             <Text style={tw`text-gray-200 text-base`}>{artist?.description || 'Artist'}</Text>
           </View>
@@ -228,12 +229,21 @@ export default function ArtistPage() {
                 onPress={() => song.id && playById(String(song.id))}
               >
                 <Image source={song.cover} style={tw`w-12 h-12 rounded-lg`} />
-                <View style={tw`flex-1`}>
+                <View style={tw`flex-1 pr-2`}>
                   <Text style={tw`text-base font-semibold text-black dark:text-gray-100`} numberOfLines={1}>{song.title}</Text>
                   <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>{song.author}</Text>
                 </View>
+                {song.listensCount ? (
+                  <View style={tw`justify-center px-2`}>
+                    <Text style={tw`text-xs font-medium text-gray-500 dark:text-gray-400`}>
+                      {song.listensCount}
+                    </Text>
+                  </View>
+                ) : null}
               </TouchableOpacity>
-              <Ionicons name="ellipsis-vertical" size={20} color="#9ca3af" />
+              <TouchableOpacity style={tw`py-2 pl-2`}>
+                <Ionicons name="ellipsis-vertical" size={20} color="#9ca3af" />
+              </TouchableOpacity>
             </View>
           ))}
         </View>

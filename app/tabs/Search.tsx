@@ -199,8 +199,9 @@ const Index = () => {
     <SongProvider>
       <SafeAreaView edges={["left", "right", "bottom"]} style={tw`flex-1 bg-white dark:bg-[#0b0b10]`}>
         <KeyboardAvoidingView
-          style={tw`flex-1`}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
         >
           <View style={tw`flex-1 relative`}>
             {/* Search Bar (always visible) */}
@@ -226,9 +227,12 @@ const Index = () => {
 
             {/* Main Content (hidden when searching) */}
             {!showOverlay && (
-              <ScrollView>
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ paddingBottom: 200 }}
+              >
                 {recentSearches.length > 0 && (
-                  <View style={tw`px-4 mt-4`}> 
+                  <View style={tw`px-4 mt-4`}>
                     <View style={tw`flex-row items-center justify-between mb-3`}>
                       <Text style={tw`text-base font-semibold text-black dark:text-gray-100`}>Recent searches</Text>
                       <TouchableOpacity onPress={clearRecentSearches}>
@@ -270,12 +274,16 @@ const Index = () => {
                   tw`absolute left-0 right-0 bg-white dark:bg-[#14141b] border-t border-gray-200 dark:border-[#2d2d35] shadow-lg`,
                   {
                     top: searchBarHeight + 16,
-                    height: screenHeight * 0.5,
+                    bottom: 0,
                     zIndex: 20,
                   },
                 ]}
               >
-                <ScrollView contentContainerStyle={tw`px-4 py-3`}>
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  contentContainerStyle={[tw`px-4 py-3`, { paddingBottom: 120 }]}
+                >
                   {isSearching ? (
                     <Text style={tw`text-gray-600 dark:text-gray-400`}>Searching…</Text>
                   ) : hasAnyResults ? (
@@ -336,41 +344,41 @@ const Index = () => {
                           <Text style={tw`text-lg font-bold mb-2 text-black dark:text-gray-100`}>Artists</Text>
                           {results.artists.map((a: any, idx: number) => {
                             const name = a?.name ?? a?.artistName ?? "";
-                                const avatar = a?.profileImg || a?.image || a?.trackImg;
-                                const about = a?.about || a?.description || "";
-                                const followers = Array.isArray(a?.followers) ? a.followers : [];
-                                const followerCount = followers.length;
-                                const isFollowing = !!userId && followers.some((id: any) => String(id) === String(userId));
-                                const isVerified = Boolean(a?.isVerified ?? a?.verified ?? a?.is_verified);
+                            const avatar = a?.profileImg || a?.image || a?.trackImg;
+                            const about = a?.about || a?.description || "";
+                            const followers = Array.isArray(a?.followers) ? a.followers : [];
+                            const followerCount = followers.length;
+                            const isFollowing = !!userId && followers.some((id: any) => String(id) === String(userId));
+                            const isVerified = Boolean(a?.isVerified ?? a?.verified ?? a?.is_verified);
 
-                                const onToggleFollow = async () => {
-                                  if (!userId || !a?._id) return;
-                                  try {
-                                    await followArtist({ artistId: a._id, userId });
-                                    setResults((prev) => {
-                                      const nextArtists = prev.artists.map((artist: any) => {
-                                        if (String(artist?._id) !== String(a?._id)) return artist;
-                                        const list = Array.isArray(artist?.followers) ? artist.followers : [];
-                                        const exists = list.some((id: any) => String(id) === String(userId));
-                                        const nextIsFollowing = !exists;
-                                        emitArtistFollowChanged({
-                                          artistId: String(a._id),
-                                          userId: String(userId),
-                                          isFollowing: nextIsFollowing,
-                                        });
-                                        return {
-                                          ...artist,
-                                          followers: exists
-                                            ? list.filter((id: any) => String(id) !== String(userId))
-                                            : [...list, userId],
-                                        };
-                                      });
-                                      return { ...prev, artists: nextArtists };
+                            const onToggleFollow = async () => {
+                              if (!userId || !a?._id) return;
+                              try {
+                                await followArtist({ artistId: a._id, userId });
+                                setResults((prev) => {
+                                  const nextArtists = prev.artists.map((artist: any) => {
+                                    if (String(artist?._id) !== String(a?._id)) return artist;
+                                    const list = Array.isArray(artist?.followers) ? artist.followers : [];
+                                    const exists = list.some((id: any) => String(id) === String(userId));
+                                    const nextIsFollowing = !exists;
+                                    emitArtistFollowChanged({
+                                      artistId: String(a._id),
+                                      userId: String(userId),
+                                      isFollowing: nextIsFollowing,
                                     });
-                                  } catch (e) {
-                                    // silent fail; toast handled in artist screen if needed
-                                  }
-                                };
+                                    return {
+                                      ...artist,
+                                      followers: exists
+                                        ? list.filter((id: any) => String(id) !== String(userId))
+                                        : [...list, userId],
+                                    };
+                                  });
+                                  return { ...prev, artists: nextArtists };
+                                });
+                              } catch (e) {
+                                // silent fail; toast handled in artist screen if needed
+                              }
+                            };
                             return (
                               <TouchableOpacity
                                 key={a?._id ?? a?.id ?? `artist-${idx}`}
@@ -380,62 +388,62 @@ const Index = () => {
                                   name && router.push(`/tabs/artist/${encodeURIComponent(name)}` as any)
                                 }
                               >
-                                    <View style={tw`flex-row items-center`}>
-                                      <View style={tw`w-12 h-12 rounded-full mr-3 bg-[#f1f1f1] dark:bg-[#23232b] overflow-hidden`}>
-                                        {avatar ? (
-                                          <Image source={{ uri: avatar }} style={tw`w-full h-full`} resizeMode="cover" />
-                                        ) : (
-                                          <View style={tw`flex-1 items-center justify-center`}>
-                                            <Text style={tw`text-gray-500 dark:text-gray-400`}>🎤</Text>
-                                          </View>
-                                        )}
+                                <View style={tw`flex-row items-center`}>
+                                  <View style={tw`w-12 h-12 rounded-full mr-3 bg-[#f1f1f1] dark:bg-[#23232b] overflow-hidden`}>
+                                    {avatar ? (
+                                      <Image source={{ uri: avatar }} style={tw`w-full h-full`} resizeMode="cover" />
+                                    ) : (
+                                      <View style={tw`flex-1 items-center justify-center`}>
+                                        <Text style={tw`text-gray-500 dark:text-gray-400`}>🎤</Text>
                                       </View>
-                                      <View style={tw`flex-1`}>
-                                        <View style={tw`flex-row items-center`}>
-                                          <Text style={tw`text-black dark:text-gray-100 font-semibold text-lg`} numberOfLines={1}>
-                                            {name || ""}
+                                    )}
+                                  </View>
+                                  <View style={tw`flex-1`}>
+                                    <View style={tw`flex-row items-center`}>
+                                      <Text style={tw`text-black dark:text-gray-100 font-semibold text-lg`} numberOfLines={1}>
+                                        {name || ""}
+                                      </Text>
+                                      {isVerified ? (
+                                        <View style={tw`ml-2 px-2 py-[2px] rounded-full bg-[#e8f0fe] dark:bg-[#1f2a44]`}>
+                                          <Text style={tw`text-[10px] text-[#2e77ff] dark:text-[#9bbcff] font-semibold`}>
+                                            Verified
                                           </Text>
-                                          {isVerified ? (
-                                            <View style={tw`ml-2 px-2 py-[2px] rounded-full bg-[#e8f0fe] dark:bg-[#1f2a44]`}>
-                                              <Text style={tw`text-[10px] text-[#2e77ff] dark:text-[#9bbcff] font-semibold`}>
-                                                Verified
-                                              </Text>
-                                            </View>
-                                          ) : null}
                                         </View>
-                                        {/* <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>
+                                      ) : null}
+                                    </View>
+                                    {/* <Text style={tw`text-gray-500 dark:text-gray-400 text-xs`} numberOfLines={1}>
                                           {a?.genre ?? a?.genres?.join(", ") ?? ""}
                                         </Text> */}
-                                        {/* {about ? (
+                                    {/* {about ? (
                                           <Text style={tw`text-gray-600 dark:text-gray-300 text-xs mt-1`} numberOfLines={2}>
                                             {about}
                                           </Text>
                                         ) : null} */}
-                                      </View>
-                                      <View style={tw`items-end ml-2`}>
-                                        <Text style={tw`text-[10px] text-gray-500 dark:text-gray-400 mb-1`}>
-                                          {followerCount} follower{followerCount === 1 ? "" : "s"}
-                                        </Text>
-                                        <TouchableOpacity
-                                          onPress={onToggleFollow}
-                                          disabled={!userId}
-                                          style={[
-                                            tw`px-3 py-1 rounded-full`,
-                                            isFollowing ? tw`bg-[#f1f3f5] dark:bg-[#23232b]` : tw`bg-[#2e77ff]`,
-                                            !userId ? tw`opacity-60` : null,
-                                          ]}
-                                        >
-                                          <Text
-                                            style={[
-                                              tw`text-[11px] font-semibold`,
-                                              isFollowing ? tw`text-black dark:text-gray-100` : tw`text-white`,
-                                            ]}
-                                          >
-                                            {isFollowing ? "Unfollow" : "Follow"}
-                                          </Text>
-                                        </TouchableOpacity>
-                                      </View>
-                                    </View>
+                                  </View>
+                                  <View style={tw`items-end ml-2`}>
+                                    <Text style={tw`text-[10px] text-gray-500 dark:text-gray-400 mb-1`}>
+                                      {followerCount} follower{followerCount === 1 ? "" : "s"}
+                                    </Text>
+                                    <TouchableOpacity
+                                      onPress={onToggleFollow}
+                                      disabled={!userId}
+                                      style={[
+                                        tw`px-3 py-1 rounded-full`,
+                                        isFollowing ? tw`bg-[#f1f3f5] dark:bg-[#23232b]` : tw`bg-[#2e77ff]`,
+                                        !userId ? tw`opacity-60` : null,
+                                      ]}
+                                    >
+                                      <Text
+                                        style={[
+                                          tw`text-[11px] font-semibold`,
+                                          isFollowing ? tw`text-black dark:text-gray-100` : tw`text-white`,
+                                        ]}
+                                      >
+                                        {isFollowing ? "Unfollow" : "Follow"}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
                               </TouchableOpacity>
                             );
                           })}

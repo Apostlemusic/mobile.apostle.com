@@ -120,3 +120,16 @@ export async function logout() {
     await clearTokens();
   }
 }
+
+export async function deleteAccount() {
+  try {
+    const res = await api.delete('/api/user/delete');
+    showSuccessToast('Account deleted', res.data?.message || 'Your account has been deleted.');
+    return res.data;
+  } catch (error: any) {
+    showErrorToast('Delete account failed', getErrorMessage(error, 'Unable to delete account.'));
+    throw error;
+  } finally {
+    await clearTokens();
+  }
+}

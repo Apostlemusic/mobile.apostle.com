@@ -13,7 +13,7 @@ import {
 import Slider from "@react-native-community/slider";
 import tw from "twrnc";
 import { useRouter } from "expo-router";
-import { logout } from "@/services/auth";
+import { deleteAccount, logout } from "@/services/auth";
 import { getAuthInvalid, setAuthInvalid as setAuthInvalidFlag } from "@/lib/auth/tokens";
 import { getMyProfile } from "@/services/users";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -33,15 +33,15 @@ export default function SettingsScreen() {
   const [authInvalid, setAuthInvalid] = useState(false);
   const [user, setUser] = useState<
     | {
-        _id: string;
-        name: string;
-        email: string;
-        phoneNumber?: string;
-        role?: string;
-        verified?: boolean;
-        blocked?: boolean;
-        createdAt?: string;
-      }
+      _id: string;
+      name: string;
+      email: string;
+      phoneNumber?: string;
+      role?: string;
+      verified?: boolean;
+      blocked?: boolean;
+      createdAt?: string;
+    }
     | null
   >(null);
 
@@ -117,6 +117,16 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      router.push("/Auth/Signin");
+    } catch (error) {
+      console.log("Error during delete account:", error);
+      router.push("/Auth/Signin");
+    }
+  };
+
   const displayName = useMemo(() => user?.name || "User", [user?.name]);
   const displayEmail = useMemo(() => user?.email || "", [user?.email]);
 
@@ -137,143 +147,143 @@ export default function SettingsScreen() {
 
   return (
     <>
-    <ScrollView style={[tw`flex-1`, { backgroundColor: colors.background }]} overScrollMode="never">
-      {/* Header */}
-      <View
-        style={[
-          tw`flex-row justify-between items-center px-4 py-5 border-b`,
-          { borderColor: colors.border },
-        ]}
-      >
-        <View style={tw`flex-row items-center`}>
-          <View
-            style={[
-              tw`w-12 h-12 rounded-full justify-center items-center mr-3`,
-              { backgroundColor: colors.card },
-            ]}
-          >
-            <Text style={tw`text-xl`}>👤</Text>
-          </View>
-          <View>
-            <Text style={[tw`text-xl font-bold`, { color: colors.text }]}>
-              {displayName}
-            </Text>
-            {!!displayEmail && (
-              <Text style={[tw`text-gray-500`, { color: colors.subtext }]}>
-                {displayEmail}
-              </Text>
-            )}
-            {loadingProfile && (
-              <View style={tw`flex-row items-center mt-1`}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={[tw`text-gray-500 ml-2`, { color: colors.subtext }]}>
-                  Loading profile...
-                </Text>
-              </View>
-            )}
-            {!!profileError && !loadingProfile && (
-              <Text style={tw`text-red-500 mt-1`}>{profileError}</Text>
-            )}
-          </View>
-        </View>
-
-        <View style={tw`flex-row items-center`}>
-          <TouchableOpacity
-            onPress={() => setSidebarOpen(true)}
-            style={[tw`rounded-md px-3 py-2`, { backgroundColor: colors.card }]}
-          >
-            <Text style={[tw`text-lg`, { color: colors.text }]}>⋮</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Audio streaming quality */}
-      <View style={[tw`px-5 py-6 border-b`, { borderColor: colors.border }]}>
-        <Text style={[tw`text-lg font-bold mb-1`, { color: colors.text }]}>Audio streaming quality</Text>
-        <Text style={[tw`text-gray-500 mb-4`, { color: colors.subtext }] }>
-          Choose the best audio quality that best supports you
-        </Text>
-
-        {qualityOptions.map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={tw`flex-row justify-between items-center py-2 `}
-            onPress={() => setAudioQuality(option)}
-          >
-            <Text style={[tw`text-base`, { color: colors.text }]}>{option}</Text>
+      <ScrollView style={[tw`flex-1`, { backgroundColor: colors.background }]} overScrollMode="never">
+        {/* Header */}
+        <View
+          style={[
+            tw`flex-row justify-between items-center px-4 py-5 border-b`,
+            { borderColor: colors.border },
+          ]}
+        >
+          <View style={tw`flex-row items-center`}>
             <View
               style={[
-                tw`w-5 h-5 rounded-full border-2 flex justify-center items-center`,
-                { borderColor: audioQuality === option ? colors.primary : colors.muted },
+                tw`w-12 h-12 rounded-full justify-center items-center mr-3`,
+                { backgroundColor: colors.card },
               ]}
             >
-              {
-                audioQuality === option ? (
-                  <View style={[tw`w-3 h-3 rounded-full m-[3px]`, { backgroundColor: colors.primary }]} />
-                ) : (
-                  null
-                )
-              }
+              <Text style={tw`text-xl`}>👤</Text>
             </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+            <View>
+              <Text style={[tw`text-xl font-bold`, { color: colors.text }]}>
+                {displayName}
+              </Text>
+              {!!displayEmail && (
+                <Text style={[tw`text-gray-500`, { color: colors.subtext }]}>
+                  {displayEmail}
+                </Text>
+              )}
+              {loadingProfile && (
+                <View style={tw`flex-row items-center mt-1`}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={[tw`text-gray-500 ml-2`, { color: colors.subtext }]}>
+                    Loading profile...
+                  </Text>
+                </View>
+              )}
+              {!!profileError && !loadingProfile && (
+                <Text style={tw`text-red-500 mt-1`}>{profileError}</Text>
+              )}
+            </View>
+          </View>
 
-      {/* Mix Song */}
-      <View style={tw`px-5 py-6`}>
-        <Text style={[tw`text-lg font-bold mb-1`, { color: colors.text }]}>Mix Song</Text>
-        <Text style={[tw`text-gray-500 mb-4`, { color: colors.subtext }] }>
-          Mix the playing track and next track together for a smooth playback
-        </Text>
-
-        <View style={tw`flex-row justify-between items-center`}>
-          <Text style={[tw`text-base`, { color: colors.text }]}>10s</Text>
-          <Slider
-            style={tw`flex-1 mx-3`}
-            minimumValue={10}
-            maximumValue={15}
-            value={mixValue}
-            minimumTrackTintColor={colors.primary}
-            maximumTrackTintColor={colors.border}
-            thumbTintColor={colors.primary}
-            onValueChange={setMixValue}
-          />
-          <Text style={[tw`text-base`, { color: colors.text }]}>15s</Text>
+          <View style={tw`flex-row items-center`}>
+            <TouchableOpacity
+              onPress={() => setSidebarOpen(true)}
+              style={[tw`rounded-md px-3 py-2`, { backgroundColor: colors.card }]}
+            >
+              <Text style={[tw`text-lg`, { color: colors.text }]}>⋮</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Toggles */}
-        <View style={tw`mt-8`}>
-          <View style={tw`flex-row justify-between items-center mb-5`}>
-            <Text style={[tw`text-base font-semibold`, { color: colors.text }]}>Gapless Playback</Text>
-            <Switch
-              value={gapless}
-              onValueChange={setGapless}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={gapless ? "#fff" : colors.muted}
-            />
-          </View>
+        {/* Audio streaming quality */}
+        <View style={[tw`px-5 py-6 border-b`, { borderColor: colors.border }]}>
+          <Text style={[tw`text-lg font-bold mb-1`, { color: colors.text }]}>Audio streaming quality</Text>
+          <Text style={[tw`text-gray-500 mb-4`, { color: colors.subtext }]}>
+            Choose the best audio quality that best supports you
+          </Text>
+
+          {qualityOptions.map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={tw`flex-row justify-between items-center py-2 `}
+              onPress={() => setAudioQuality(option)}
+            >
+              <Text style={[tw`text-base`, { color: colors.text }]}>{option}</Text>
+              <View
+                style={[
+                  tw`w-5 h-5 rounded-full border-2 flex justify-center items-center`,
+                  { borderColor: audioQuality === option ? colors.primary : colors.muted },
+                ]}
+              >
+                {
+                  audioQuality === option ? (
+                    <View style={[tw`w-3 h-3 rounded-full m-[3px]`, { backgroundColor: colors.primary }]} />
+                  ) : (
+                    null
+                  )
+                }
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Mix Song */}
+        <View style={tw`px-5 py-6`}>
+          <Text style={[tw`text-lg font-bold mb-1`, { color: colors.text }]}>Mix Song</Text>
+          <Text style={[tw`text-gray-500 mb-4`, { color: colors.subtext }]}>
+            Mix the playing track and next track together for a smooth playback
+          </Text>
 
           <View style={tw`flex-row justify-between items-center`}>
-            <Text style={[tw`text-base font-semibold`, { color: colors.text }]}>Volume Leveler</Text>
-            <Switch
-              value={volumeLeveler}
-              onValueChange={setVolumeLeveler}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={volumeLeveler ? "#fff" : colors.muted}
+            <Text style={[tw`text-base`, { color: colors.text }]}>10s</Text>
+            <Slider
+              style={tw`flex-1 mx-3`}
+              minimumValue={10}
+              maximumValue={15}
+              value={mixValue}
+              minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.border}
+              thumbTintColor={colors.primary}
+              onValueChange={setMixValue}
             />
+            <Text style={[tw`text-base`, { color: colors.text }]}>15s</Text>
+          </View>
+
+          {/* Toggles */}
+          <View style={tw`mt-8`}>
+            <View style={tw`flex-row justify-between items-center mb-5`}>
+              <Text style={[tw`text-base font-semibold`, { color: colors.text }]}>Gapless Playback</Text>
+              <Switch
+                value={gapless}
+                onValueChange={setGapless}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={gapless ? "#fff" : colors.muted}
+              />
+            </View>
+
+            <View style={tw`flex-row justify-between items-center`}>
+              <Text style={[tw`text-base font-semibold`, { color: colors.text }]}>Volume Leveler</Text>
+              <Switch
+                value={volumeLeveler}
+                onValueChange={setVolumeLeveler}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={volumeLeveler ? "#fff" : colors.muted}
+              />
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Sidebar overlay */}
-      {sidebarOpen && (
-        <Pressable
-          onPress={() => setSidebarOpen(false)}
-          style={[tw`absolute inset-0`, { backgroundColor: colors.overlay }]}
-        />
-      )}
-    </ScrollView>
-    
+        {/* Sidebar overlay */}
+        {sidebarOpen && (
+          <Pressable
+            onPress={() => setSidebarOpen(false)}
+            style={[tw`absolute inset-0`, { backgroundColor: colors.overlay }]}
+          />
+        )}
+      </ScrollView>
+
 
       {/* Sliding sidebar */}
       <Animated.ScrollView
@@ -360,12 +370,21 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity
-              onPress={handleLogout}
-              style={[tw`mt-6 rounded-lg px-4 py-3`, { backgroundColor: colors.muted }]}
-            >
-              <Text style={tw`text-white font-semibold text-center`}>Log Out</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                onPress={handleLogout}
+                style={[tw`mt-6 rounded-lg px-4 py-3`, { backgroundColor: colors.muted }]}
+              >
+                <Text style={tw`text-white font-semibold text-center`}>Log Out</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteAccount}
+                style={[tw`mt-6 rounded-lg px-4 py-3`, { backgroundColor: "red" }]}
+              >
+                <Text style={tw`text-white font-semibold text-center`}>Delete Account</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </Animated.ScrollView>

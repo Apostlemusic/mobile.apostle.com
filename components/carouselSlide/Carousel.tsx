@@ -91,23 +91,26 @@ const renderNewRelease = ({ item }: { item: GlobalTrack }) => {
 // This safely extracts an array from any likely discover response.
 function unwrapDiscoverItems(payload: any): any[] {
   if (!payload) return [];
-  if (Array.isArray(payload)) return payload;
+  let raw: any[] = [];
 
-  // common API shapes
-  if (Array.isArray(payload?.items)) return payload.items;
-  if (Array.isArray(payload?.results)) return payload.results;
-  if (Array.isArray(payload?.songs)) return payload.songs;
+  if (Array.isArray(payload)) raw = payload;
+  else if (Array.isArray(payload?.items)) raw = payload.items;
+  else if (Array.isArray(payload?.results)) raw = payload.results;
+  else if (Array.isArray(payload?.songs)) raw = payload.songs;
+  else if (Array.isArray(payload?.data)) raw = payload.data;
+  else if (Array.isArray(payload?.data?.items)) raw = payload.data.items;
+  else if (Array.isArray(payload?.data?.results)) raw = payload.data.results;
+  else if (Array.isArray(payload?.data?.songs)) raw = payload.data.songs;
+  else if (Array.isArray(payload?.section?.items)) raw = payload.section.items;
+  else if (Array.isArray(payload?.data?.section?.items)) raw = payload.data.section.items;
 
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.data?.items)) return payload.data.items;
-  if (Array.isArray(payload?.data?.results)) return payload.data.results;
-  if (Array.isArray(payload?.data?.songs)) return payload.data.songs;
-
-  // sometimes: { success:true, section:{ items:[...] } }
-  if (Array.isArray(payload?.section?.items)) return payload.section.items;
-  if (Array.isArray(payload?.data?.section?.items)) return payload.data.section.items;
-
-  return [];
+  // Unwrap objects that are nested under an `item` key (e.g. { type: 'song', item: { ... } })
+  return raw.map(el => {
+    if (el && typeof el === 'object' && el.item && el.type) {
+      return el.item;
+    }
+    return el;
+  });
 }
 
 const MusicHome = () => {
@@ -156,7 +159,7 @@ const MusicHome = () => {
     useCallback(() => {
       void fetchJump();
       void fetchNewItems();
-      return () => {};
+      return () => { };
     }, [fetchJump, fetchNewItems])
   );
 

@@ -78,7 +78,7 @@ const Layout = () => {
             edges={["left", "right", "bottom"]}
             style={tw`flex-1 bg-gray-100 dark:bg-[#0b0b10]`}
           >
-            <View style={{ flex: 1 }}>
+            <View style={[tw`flex-1`, !isKeyboardVisible && { paddingBottom: 125 }]}>
               <Tabs
                 screenOptions={{
                   headerShown: false,

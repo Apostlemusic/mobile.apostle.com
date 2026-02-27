@@ -48,7 +48,7 @@ const Input: React.FC<InputProps> = ({
   });
 
   return (
-    <View style={tw`mb-4`}>
+    <View style={tw`mb-5`}>
       <Animated.View
         style={[
           tw`flex-row items-center border-b p-2 mt-3 rounded-lg`,
@@ -56,9 +56,9 @@ const Input: React.FC<InputProps> = ({
         ]}
       >
         <TextInput
-          style={tw`flex-1 text-base text-black dark:text-gray-100`}
+          style={tw`flex-1 text-base text-black dark:text-gray-100 font-medium`}
           placeholder={label}
-          placeholderTextColor="#A1A1A1" // Set placeholder color to gray
+          placeholderTextColor="#A1A1A1"
           secureTextEntry={secureTextEntry && isPasswordVisible}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -66,11 +66,11 @@ const Input: React.FC<InputProps> = ({
           onChangeText={onChangeText}
         />
         {secureTextEntry && (
-          <TouchableOpacity onPress={togglePasswordVisibility}>
+          <TouchableOpacity onPress={togglePasswordVisibility} style={tw`ml-2`}>
             <MaterialIcons
               name={isPasswordVisible ? 'visibility-off' : 'visibility'}
-              size={24}
-              color="gray"
+              size={22}
+              color="#A1A1A1"
             />
           </TouchableOpacity>
         )}

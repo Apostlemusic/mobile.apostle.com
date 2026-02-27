@@ -34,13 +34,15 @@ const renderCarouselItem = ({ item }: { item: GlobalTrack }) => {
         style={tw`w-[210px] h-[320px] overflow-hidden absolute top-0 z-10 p-3`}
         imageStyle={{ borderBottomLeftRadius: 50, borderTopRightRadius: 50 }}
       >
-        <AuthorLink
-          name={item.author || item.artist || ""}
-          style={tw`text-white text-base font-semibold mb-1 w-1/2`}
-          numberOfLines={1}
-        />
+        <View style={tw`bg-black/20 self-start px-2 py-1 rounded-bl-xl rounded-tr-xl`}>
+          <AuthorLink
+            name={item.author || item.artist || ""}
+            style={tw`text-white text-sm font-bold`}
+            numberOfLines={1}
+          />
+        </View>
         <Text
-          style={tw`text-black dark:text-gray-100 text-lg font-semibold absolute bottom-3 right-2 w-1/2 text-center`}
+          style={tw`text-white dark:text-gray-100 text-lg font-semibold absolute bottom-3 right-2 w-1/2 text-center bg-black/30 px-2 py-1 rounded-bl-xl rounded-tr-xl`}
           numberOfLines={2}
         >
           {item.title}
@@ -192,24 +194,24 @@ const MusicHome = () => {
           </Text>
 
           {jumpLoading && !hasJump ? (
-            <View style={tw`w-full items-center -mb-16`}>
-              <ActivityIndicator color="#ffffff" />
+            <View style={tw`w-full items-center py-8`}>
+              <ActivityIndicator color={tw.prefixMatch('dark') ? "#ffffff" : "#000000"} />
             </View>
           ) : (
             <Carousel
               key={`jump-carousel-${jumpBackIn.length}`} // ✅ Forces re-render when data arrives
               data={jumpBackIn}
               renderItem={({ item }) => (
-                <TouchableOpacity activeOpacity={0.8} onPress={() => onPressPlay(item)}>
+                <TouchableOpacity activeOpacity={0.9} onPress={() => onPressPlay(item)}>
                   {renderCarouselItem({ item })}
                 </TouchableOpacity>
               )}
               width={screenWidth}
-              height={370}
+              height={360}
               loop
               autoPlay
               autoPlayInterval={5000}
-              style={tw`-mb-16`}
+              style={tw`mt-2`}
             />
           )}
         </View>
@@ -217,8 +219,8 @@ const MusicHome = () => {
 
       {/* New Releases Section */}
       {hasNew || newLoading ? (
-        <View style={tw`px-4 ${isJumpVisible ? "mt-24" : "mt-8"}`}>
-          <Text style={tw`text-lg font-bold mb-3 text-black dark:text-gray-100`}>
+        <View style={tw`px-4 ${isJumpVisible ? "mt-18" : "mt-6"}`}>
+          <Text style={tw`text-xl font-black text-gray-900 dark:text-gray-100 mb-4 px-2 tracking-tight`}>
             New Releases For YOU
           </Text>
           {newLoading && !hasNew ? (

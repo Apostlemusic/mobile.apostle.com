@@ -151,7 +151,7 @@ export default function SettingsScreen() {
         {/* Header */}
         <View
           style={[
-            tw`flex-row justify-between items-center px-4 py-5 border-b`,
+            tw`flex-row justify-between items-center px-6 pt-10 pb-6 border-b`,
             { borderColor: colors.border },
           ]}
         >
@@ -165,11 +165,11 @@ export default function SettingsScreen() {
               <Text style={tw`text-xl`}>👤</Text>
             </View>
             <View>
-              <Text style={[tw`text-xl font-bold`, { color: colors.text }]}>
+              <Text style={[tw`text-2xl font-black tracking-tighter`, { color: colors.text }]}>
                 {displayName}
               </Text>
               {!!displayEmail && (
-                <Text style={[tw`text-gray-500`, { color: colors.subtext }]}>
+                <Text style={[tw`text-sm font-bold opacity-60`, { color: colors.subtext }]}>
                   {displayEmail}
                 </Text>
               )}
@@ -198,9 +198,9 @@ export default function SettingsScreen() {
         </View>
 
         {/* Audio streaming quality */}
-        <View style={[tw`px-5 py-6 border-b`, { borderColor: colors.border }]}>
-          <Text style={[tw`text-lg font-bold mb-1`, { color: colors.text }]}>Audio streaming quality</Text>
-          <Text style={[tw`text-gray-500 mb-4`, { color: colors.subtext }]}>
+        <View style={[tw`px-6 py-8 border-b`, { borderColor: colors.border }]}>
+          <Text style={[tw`text-xl font-black tracking-tight mb-2`, { color: colors.text }]}>Audio streaming quality</Text>
+          <Text style={[tw`text-sm font-bold opacity-60 mb-6`, { color: colors.subtext }]}>
             Choose the best audio quality that best supports you
           </Text>
 
@@ -230,9 +230,9 @@ export default function SettingsScreen() {
         </View>
 
         {/* Mix Song */}
-        <View style={tw`px-5 py-6`}>
-          <Text style={[tw`text-lg font-bold mb-1`, { color: colors.text }]}>Mix Song</Text>
-          <Text style={[tw`text-gray-500 mb-4`, { color: colors.subtext }]}>
+        <View style={tw`px-6 py-8`}>
+          <Text style={[tw`text-xl font-black tracking-tight mb-2`, { color: colors.text }]}>Mix Song</Text>
+          <Text style={[tw`text-sm font-bold opacity-60 mb-6`, { color: colors.subtext }]}>
             Mix the playing track and next track together for a smooth playback
           </Text>
 

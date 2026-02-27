@@ -108,6 +108,15 @@ export async function isVerified(email: string) {
   }
 }
 
+export async function verifyToken(token: string) {
+  try {
+    const res = await api.post('/api/user/verifyToken', { token });
+    return res.data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
 export async function logout() {
   try {
     const res = await api.post('/api/user/logout');
@@ -123,7 +132,7 @@ export async function logout() {
 
 export async function deleteAccount() {
   try {
-    const res = await api.delete('/api/user/delete');
+    const res = await api.delete('/api/user/account');
     showSuccessToast('Account deleted', res.data?.message || 'Your account has been deleted.');
     return res.data;
   } catch (error: any) {

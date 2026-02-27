@@ -40,12 +40,12 @@ const UnifiedSection = ({
 
   if (loading && (!data || data.length === 0)) {
     return (
-      <View style={tw`mt-8`}>
-        <View style={tw`flex-row justify-between items-center px-4`}>
-            <Text style={tw`text-lg font-semibold text-gray-900 dark:text-gray-100`}>{title}</Text>
+      <View style={tw`mt-10`}>
+        <View style={tw`flex-row justify-between items-center px-6`}>
+          <Text style={tw`text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight`}>{title}</Text>
         </View>
-        <View style={tw`py-6 items-center`}>
-          <ActivityIndicator color="#4B5563" />
+        <View style={tw`py-10 items-center`}>
+          <ActivityIndicator color={tw.prefixMatch('dark') ? "#ffffff" : "#4B5563"} />
         </View>
       </View>
     );
@@ -87,14 +87,14 @@ const UnifiedSection = ({
   };
 
   return (
-    <View style={tw`mt-8`}>
-      <View style={tw`flex-row justify-between items-center px-4`}>
-          <Text style={tw`text-lg font-semibold text-gray-900 dark:text-gray-100`}>{title}</Text>
+    <View style={tw`mt-10`}>
+      <View style={tw`flex-row justify-between items-center px-6`}>
+        <Text style={tw`text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight`}>{title}</Text>
       </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={tw`mt-3 pl-4`}
+        contentContainerStyle={tw`pl-6 pr-2 mt-4`}
       >
         {data.map((t: AnyItem, idx: number) => {
           const key = String(t.trackId || t._id || t.id || t.slug || idx);
@@ -255,14 +255,12 @@ export default function MoreForYou() {
   }, []);
 
   return (
-    <ScrollView
-      style={tw`flex-1 bg-white dark:bg-[#0b0b10] pb-5`}
-      showsVerticalScrollIndicator={false}
-      overScrollMode="never"
-    >
-      <View style={tw`px-4 mt-8`}>
-          <Text style={tw`text-2xl font-bold text-gray-900 dark:text-gray-100`}>More For YOU</Text>
-          <Text style={tw`text-gray-500 dark:text-gray-400 mt-1`}>
+    <View style={tw`flex-1 bg-gray-50 dark:bg-[#0b0b10]`}>
+      <View style={tw`px-6 mt-12`}>
+        <Text style={tw`text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tighter`}>
+          More For YOU
+        </Text>
+        <Text style={tw`text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium leading-5`}>
           We’ve seen your rotation and know this would fit right in
         </Text>
       </View>
@@ -271,6 +269,7 @@ export default function MoreForYou() {
       {renderSection("Liked Songs", "song", liked, likedLoading)}
       {renderSection("Categories", "category", categories, categoriesLoading)}
       {renderSection("Genres", "genre", genres, genresLoading)}
-    </ScrollView>
+      <View style={tw`h-8`} />
+    </View>
   );
 }

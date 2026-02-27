@@ -207,10 +207,10 @@ const Index = () => {
             {/* Search Bar (always visible) */}
             <View
               onLayout={(e) => setSearchBarHeight(e.nativeEvent.layout.height)}
-              style={tw`px-4`}
+              style={tw`px-6 mt-4`}
             >
               <View
-                style={tw`flex-row items-center bg-[#F9F9F9D4] dark:bg-[#1b1b22] rounded-xl p-3 shadow-md border border-[#26425299] dark:border-[#2d2d35]`}
+                style={tw`flex-row items-center bg-gray-50 dark:bg-[#1b1b22] rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-[#2d2d35]`}
               >
                 <TextInput
                   placeholder="Search keywords"
@@ -221,7 +221,7 @@ const Index = () => {
                   returnKeyType="search"
                   onSubmitEditing={() => saveRecentSearch(search)}
                 />
-                <Search />
+                <Search color={tw.prefixMatch('dark') ? "#ffffff" : "#000000"} />
               </View>
             </View>
 
@@ -229,14 +229,13 @@ const Index = () => {
             {!showOverlay && (
               <ScrollView
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 200 }}
               >
                 {recentSearches.length > 0 && (
-                  <View style={tw`px-4 mt-4`}>
-                    <View style={tw`flex-row items-center justify-between mb-3`}>
-                      <Text style={tw`text-base font-semibold text-black dark:text-gray-100`}>Recent searches</Text>
+                  <View style={tw`px-6 mt-8`}>
+                    <View style={tw`flex-row items-center justify-between mb-4`}>
+                      <Text style={tw`text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight`}>Recent searches</Text>
                       <TouchableOpacity onPress={clearRecentSearches}>
-                        <Text style={tw`text-xs text-gray-500 dark:text-gray-400`}>Clear</Text>
+                        <Text style={tw`text-sm font-bold text-gray-500`}>Clear</Text>
                       </TouchableOpacity>
                     </View>
                     <View style={tw`flex-row flex-wrap`}>
@@ -282,7 +281,7 @@ const Index = () => {
                 <ScrollView
                   keyboardShouldPersistTaps="handled"
                   keyboardDismissMode="on-drag"
-                  contentContainerStyle={[tw`px-4 py-3`, { paddingBottom: 120 }]}
+                  contentContainerStyle={tw`px-6 py-6`}
                 >
                   {isSearching ? (
                     <Text style={tw`text-gray-600 dark:text-gray-400`}>Searching…</Text>

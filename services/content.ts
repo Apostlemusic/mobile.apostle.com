@@ -63,6 +63,11 @@ export async function getGenres() {
   return res.data;
 }
 
+export async function getAllPlaylists() {
+  const res = await api.get('/api/content/playlists');
+  return res.data;
+}
+
 export async function getGenreBySlug(genreSlug: string) {
   const res = await api.get(`/api/content/genres/${encodeURIComponent(genreSlug)}`);
   return res.data;

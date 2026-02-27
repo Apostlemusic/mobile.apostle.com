@@ -208,16 +208,16 @@ const Library: React.FC = () => {
   return (
     <View style={tw`flex-1 bg-[#fafafa] dark:bg-[#0b0b10]`}>
       {/* Header */}
-      <View style={tw`px-4 pt-6 pb-3 flex-row items-center justify-between`}>
-        <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 24, fontWeight: "800" }]}> 
+      <View style={tw`px-6 pt-10 pb-4 flex-row items-center justify-between`}>
+        <Text style={tw`text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tighter`}>
           Your Library
         </Text>
         <TouchableOpacity
           onPress={() => setShowAdd(true)}
-          style={tw`px-3 py-2 rounded-xl bg-[#eef2ff] dark:bg-[#1f2a44]`}
+          style={tw`px-4 py-2 rounded-2xl bg-gray-100 dark:bg-[#1f2a44] border border-gray-200 dark:border-gray-700 shadow-sm`}
         >
-          <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 12, fontWeight: "600" }]}> 
-            Add Playlist
+          <Text style={tw`text-xs font-bold text-gray-700 dark:text-gray-300`}>
+            + Add
           </Text>
         </TouchableOpacity>
       </View>
@@ -226,7 +226,7 @@ const Library: React.FC = () => {
         data={playlists}
         keyExtractor={(item: any) => item._id?.toString?.() ?? String(item._id)}
         renderItem={renderPlaylistItem}
-        contentContainerStyle={tw`px-4 pb-20`}
+        contentContainerStyle={tw`px-6 pb-4`}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
@@ -234,18 +234,18 @@ const Library: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={openLikedSongs}
-              style={tw`rounded-2xl mb-10 bg-white dark:bg-[#14141b] border border-[#eaeaea] dark:border-[#2d2d35]`}
+              style={tw`rounded-3xl mb-12 bg-white dark:bg-[#14141b] border border-gray-100 dark:border-[#2d2d35] shadow-sm overflow-hidden`}
             >
-              <View style={tw`flex-row items-center justify-between px-4 pt-4`}>
+              <View style={tw`flex-row items-center justify-between px-5 pt-5`}>
                 <View style={tw`flex-row items-center`}>
-                  <View style={tw`w-9 h-9 rounded-xl items-center justify-center bg-[#f1f3f5] dark:bg-[#23232b]`}>
-                    <Ionicons name="heart" size={18} color="#e91e63" />
+                  <View style={tw`w-10 h-10 rounded-2xl items-center justify-center bg-pink-50 dark:bg-[#23232b]`}>
+                    <Ionicons name="heart" size={20} color="#e91e63" />
                   </View>
-                  <View style={tw`ml-3`}>
-                    <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 16, fontWeight: "700" }]}> 
+                  <View style={tw`ml-4`}>
+                    <Text style={tw`text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight`}>
                       Liked Songs
                     </Text>
-                    <Text style={[tw`text-gray-500 dark:text-gray-400 mt-0.5`, { fontSize: 12 }]}> 
+                    <Text style={tw`text-gray-500 dark:text-gray-400 mt-0.5 text-xs font-bold leading-3`}>
                       {likedLoading ? "Loading…" : `${likedSongs.length} songs`}
                     </Text>
                   </View>
@@ -253,9 +253,9 @@ const Library: React.FC = () => {
 
                 <TouchableOpacity
                   onPress={openLikedSongs}
-                  style={tw`px-3 py-2 rounded-xl bg-[#eef2ff] dark:bg-[#1f2a44]`}
+                  style={tw`px-4 py-2 rounded-2xl bg-gray-50 dark:bg-[#1f2a44] border border-gray-100 dark:border-gray-700`}
                 >
-                  <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 12, fontWeight: "600" }]}> 
+                  <Text style={tw`text-[11px] font-bold text-gray-600 dark:text-gray-300`}>
                     View All
                   </Text>
                 </TouchableOpacity>
@@ -284,7 +284,7 @@ const Library: React.FC = () => {
                       </View>
                     ))}
                     {likedSongs.length === 0 && (
-                      <Text style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 12 }]}> 
+                      <Text style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 12 }]}>
                         No liked songs yet
                       </Text>
                     )}
@@ -294,7 +294,7 @@ const Library: React.FC = () => {
             </TouchableOpacity>
 
             {/* Section title */}
-            <Text style={[tw`text-black dark:text-gray-100 mb-3`, { fontSize: 16, fontWeight: "700" }]}> 
+            <Text style={tw`text-lg font-black text-gray-900 dark:text-gray-100 mb-4 px-1 tracking-tight`}>
               Playlists
             </Text>
 
@@ -308,14 +308,14 @@ const Library: React.FC = () => {
         ListEmptyComponent={
           !isLoading ? (
             <View style={tw`items-center mt-10`}>
-              <Text style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 14 }]}> 
+              <Text style={[tw`text-gray-500 dark:text-gray-400`, { fontSize: 14 }]}>
                 No playlists found
               </Text>
               <TouchableOpacity
                 onPress={refresh}
                 style={tw`mt-3 px-4 py-2 rounded-xl bg-[#eef2ff] dark:bg-[#1f2a44]`}
               >
-                <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 12, fontWeight: "600" }]}> 
+                <Text style={[tw`text-black dark:text-gray-100`, { fontSize: 12, fontWeight: "600" }]}>
                   Refresh
                 </Text>
               </TouchableOpacity>
@@ -339,7 +339,7 @@ const Library: React.FC = () => {
             style={tw`absolute left-4 right-4 top-[25%] bg-white dark:bg-[#14141b] rounded-2xl p-5`}
             onStartShouldSetResponder={() => true}
           >
-            <Text style={[tw`text-black dark:text-gray-100 mb-3`, { fontSize: 18, fontWeight: "800" }]}> 
+            <Text style={[tw`text-black dark:text-gray-100 mb-3`, { fontSize: 18, fontWeight: "800" }]}>
               Create Playlist
             </Text>
             <TextInput
@@ -355,7 +355,7 @@ const Library: React.FC = () => {
                 style={tw`flex-1 px-3 py-3 rounded-xl mr-2 bg-[#f1f3f5] dark:bg-[#23232b]`}
                 disabled={creating}
               >
-                <Text style={[tw`text-black dark:text-gray-100 text-center`, { fontWeight: "700" }]}> 
+                <Text style={[tw`text-black dark:text-gray-100 text-center`, { fontWeight: "700" }]}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -367,7 +367,7 @@ const Library: React.FC = () => {
                 ]}
                 disabled={!newPlaylistName.trim() || creating}
               >
-                <Text style={[tw`text-white text-center`, { fontWeight: "700" }]}> 
+                <Text style={[tw`text-white text-center`, { fontWeight: "700" }]}>
                   {creating ? "Creating…" : "Create"}
                 </Text>
               </TouchableOpacity>

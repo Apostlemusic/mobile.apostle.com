@@ -10,7 +10,11 @@ import MoreForYou from "@/components/reusable/MoreForYou";
 const Index = () => {
   return (
     <SongProvider>
-      <ScrollView style={tw`bg-gray-50 dark:bg-[#0b0b10] h-[100%] w-full`}>
+      <ScrollView
+        style={tw`flex-1 bg-gray-50 dark:bg-[#0b0b10]`}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+      >
         <MusicHome />
         <MoreForYou />
       </ScrollView>

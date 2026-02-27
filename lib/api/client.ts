@@ -9,7 +9,7 @@ const baseURL =
 
 export const api = axios.create({
   baseURL,
-//   timeout: 20000,
+  //   timeout: 20000,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -34,11 +34,11 @@ api.interceptors.request.use(async (config) => {
     return config;
   }
 
-  const isVerifyCall = typeof config.url === "string" && config.url.includes("/api/auth/verifyToken");
+  const isVerifyCall = typeof config.url === "string" && config.url.includes("/api/user/verifyToken");
   if (token && !isVerifyCall) {
     try {
       await verifyClient.post(
-        "/api/auth/verifyToken",
+        "/api/user/verifyToken",
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

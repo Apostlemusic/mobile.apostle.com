@@ -11,7 +11,7 @@ const SplashScreenComponent: React.FC = () => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await api.post("/api/auth/verifyToken", {});
+        const response = await api.post("/api/user/verifyToken", {});
         // Navigate to the home screen upon successful verification
         router.push("/tabs/Home");
       } catch (error: any) {

@@ -1,34 +1,35 @@
 {
   "expo": {
-    "name": "apostles",
+    "name": "Apostles Music",
     "slug": "apostles",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Apostle-Logo.png",
+    "icon": "./assets/images/Apostle-Logo-512.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/Apostle-Logo.png",
+      "image": "./assets/images/Apostle-Logo-512.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "icon": "./assets/images/Apostle-Logo.png",
+      "icon": "./assets/images/Apostle-Logo-512.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.washwisee.apostle"
     },
     "android": {
-      "icon": "./assets/images/Apostle-Logo-sm.png",
+      "icon": "./assets/images/Apostle-Logo-512.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Apostle-Logo.png",
+        "foregroundImage": "./assets/images/Apostle-Logo-512.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.washwisee.apostle"
+      "package": "com.washwisee.apostle",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/Apostle-Logo.png"
+      "favicon": "./assets/images/Apostle-Logo-512.png"
     },
     "plugins": [
       "expo-router",

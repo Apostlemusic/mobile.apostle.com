@@ -13,7 +13,7 @@ This guide outlines the steps to prepare, build, and release the Apostle app to 
 Ensure `app.json` has the correct values:
 - `name`: "Apostles Music"
 - `slug`: "apostles" (Matches the EAS project configuration)
-- `package`: `com.washwisee.apostle`
+- `package`: `com.apostlesmusic.apostles`
 - `version`: `1.0.0`
 - `icon`: `./assets/images/Apostle-Logo-512.png` (High-resolution 512x512 generated)
 

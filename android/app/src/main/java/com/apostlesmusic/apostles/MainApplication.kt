@@ -1,4 +1,4 @@
-package com.washwisee.apostle
+package com.apostlesmusic.apostles
 
 import android.app.Application
 import android.content.res.Configuration

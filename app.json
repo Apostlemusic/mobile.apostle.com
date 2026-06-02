@@ -15,7 +15,7 @@
     "ios": {
       "icon": "./assets/images/Apostle-Logo-512.png",
       "supportsTablet": true,
-      "bundleIdentifier": "com.washwisee.apostle"
+      "bundleIdentifier": "com.apostlesmusic.apostles"
     },
     "android": {
       "icon": "./assets/images/Apostle-Logo-512.png",
@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/images/Apostle-Logo-512.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.washwisee.apostle",
+      "package": "com.apostlesmusic.apostles",
       "versionCode": 1
     },
     "web": {

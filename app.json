@@ -24,7 +24,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.apostlesmusic.apostles",
-      "versionCode": 1
+      "versionCode": 1,
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35
     },
     "web": {
       "bundler": "metro",

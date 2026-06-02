@@ -24,7 +24,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.apostlesmusic.apostles",
-      "versionCode": 1,
+      "versionCode": 5,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35
     },

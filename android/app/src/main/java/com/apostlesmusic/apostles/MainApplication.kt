@@ -77,4 +77,12 @@ class MainApplication : Application(), ReactApplication {
     super.onConfigurationChanged(newConfig)
     ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
   }
+
+  override fun registerReceiver(receiver: android.content.BroadcastReceiver?, filter: android.content.IntentFilter): android.content.Intent? {
+    return if (Build.VERSION.SDK_INT >= 34 && applicationInfo.targetSdkVersion >= 34) {
+      super.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+    } else {
+      super.registerReceiver(receiver, filter)
+    }
+  }
 }
